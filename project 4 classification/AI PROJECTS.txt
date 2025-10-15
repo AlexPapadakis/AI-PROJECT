@@ -1,0 +1,931 @@
+﻿Αλέξανδρος,Παπαδάκης,"2024-2025 ΕΑΡ, CarControl B, FuzzyController 19"
+
+
+Fuzzy & PI controllers
+
+
+
+
+s = tf('s');
+>> Gp = 25/((s+0.1)*(s+10));
+>> Kp = 1;
+>> c = 0.2;
+>> Ki = Kp*c;
+>> Gc = Kp*(s+c)/s;
+>> Gol = Gc*Gp;
+>> figure
+>> rlocus(Gol);
+>> K = 0.225;
+>> T = feedback( K*Gc*Gp, 1);
+>> figure
+>> step(T);
+>> % tr = 3s too slow. overshoot just <8%
+>> %%% will pick a new K with c = 0.2
+>> figure
+>> K = 1.66;
+>> T = feedback(K*Gol,1);
+>> step(T);
+>> %%%% tr = 0.43 s // overshoot 4%
+Άρα:
+Κολ = Ka*Kp*25
+Με Kp=1 Ka=1.66 Aρα το ιδιο με Κp=1.66 Ka=1 -> Ki = Kp*c = 1.66*0.2 = 0.332
+Kp = 1.66 Ki = 0.332 Ka=1
+
+
+
+
+
+
+
+
+Σχεδίαση PI Ελεγκτή
+1. Μοντέλο Συστήματος
+Το προς έλεγχο σύστημα δίνεται από τη συνάρτηση μεταφοράς:
+Gp(s) = 25 / ((s + 0.1)(s + 10))
+2. Μορφή PI Ελεγκτή
+Ο PI ελεγκτής έχει τη μορφή:
+Gc(s) = Kp * (s + c) / s
+όπου
+* Kp: αναλογικό κέρδος
+
+* Ki = Kp * c: ολοκληρωτικό κέρδος
+
+3. Αρχική Επιλογή Παραμέτρων
+Για αρχικές τιμές επιλέχθηκαν:
+   * Kp = 1
+
+   * c = 0.2 → Ki = 0.2
+
+Η ανοιχτή συνάρτηση μεταφοράς είναι:
+Gol(s) = Gc(s) * Gp(s) = [Kp * (s + c) / s] * [25 / ((s + 0.1)(s + 10))]
+4. Ανάλυση με Τόπο Ριζών
+Με χρήση MATLAB υπολογίστηκε ο τόπος ριζών   
+
+
+και δοκιμάστηκαν διαφορετικές τιμές του κέρδους K.
+      * Για K = 0.225:
+• Χρόνος ανόδου tr ≈ 3 s (πολύ αργός)
+• Υπερύψωση < 8%
+  
+      * Για K = 1.66:
+• Χρόνος ανόδου tr ≈ 0.43 s
+      *  • Υπερύψωση ≈ 4% (αποδεκτή)
+  
+
+
+5. Τελική Επιλογή Παραμέτρων
+Η τελική επιλογή είναι:
+         * Kp = 1.66
+
+         * Ki = Kp * c = 1.66 * 0.2 = 0.332
+
+         * Ka = 1
+
+Άρα, ο PI ελεγκτής γράφεται:
+Gc(s) = 1.66 * (s + 0.2) / s
+με Kp = 1.66 και Ki = 0.332
+
+
+
+
+% Create Mamdani-type FIS
+fzpi = mamfis("Name", "FZPI");
+% --- INPUT 1: e ∈ [-1, 1] ---
+fzpi = addInput(fzpi, [-1 1], "Name", "e");
+fzpi = addMF(fzpi, "e", "trimf", [-1.00 -1.00 -0.75], "Name", "NV");
+fzpi = addMF(fzpi, "e", "trimf", [-1.00 -0.75 -0.50], "Name", "NL");
+fzpi = addMF(fzpi, "e", "trimf", [-0.75 -0.50 -0.25], "Name", "NM");
+fzpi = addMF(fzpi, "e", "trimf", [-0.50 -0.25  0.00], "Name", "NS");
+fzpi = addMF(fzpi, "e", "trimf", [-0.25  0.00  0.25], "Name", "ZR");
+fzpi = addMF(fzpi, "e", "trimf", [ 0.00  0.25  0.50], "Name", "PS");
+fzpi = addMF(fzpi, "e", "trimf", [ 0.25  0.50  0.75], "Name", "PM");
+fzpi = addMF(fzpi, "e", "trimf", [ 0.50  0.75  1.00], "Name", "PL");
+fzpi = addMF(fzpi, "e", "trimf", [ 0.75  1.00  1.00], "Name", "PV");
+% --- INPUT 2: de ∈ [-1, 1] ---
+fzpi = addInput(fzpi, [-1 1], "Name", "de");
+fzpi = addMF(fzpi, "de", "trimf", [-1.00 -1.00 -0.75], "Name", "NV");
+fzpi = addMF(fzpi, "de", "trimf", [-1.00 -0.75 -0.50], "Name", "NL");
+fzpi = addMF(fzpi, "de", "trimf", [-0.75 -0.50 -0.25], "Name", "NM");
+fzpi = addMF(fzpi, "de", "trimf", [-0.50 -0.25  0.00], "Name", "NS");
+fzpi = addMF(fzpi, "de", "trimf", [-0.25  0.00  0.25], "Name", "ZR");
+fzpi = addMF(fzpi, "de", "trimf", [ 0.00  0.25  0.50], "Name", "PS");
+fzpi = addMF(fzpi, "de", "trimf", [ 0.25  0.50  0.75], "Name", "PM");
+fzpi = addMF(fzpi, "de", "trimf", [ 0.50  0.75  1.00], "Name", "PL");
+fzpi = addMF(fzpi, "de", "trimf", [ 0.75  1.00  1.00], "Name", "PV");
+% --- OUTPUT: du ∈ [-1, 1] ---
+fzpi = addOutput(fzpi, [-1 1], "Name", "du");
+fzpi = addMF(fzpi, "du", "trimf", [-1.00 -1.00 -0.66], "Name", "NL");
+fzpi = addMF(fzpi, "du", "trimf", [-1.00 -0.66 -0.33], "Name", "NM");
+fzpi = addMF(fzpi, "du", "trimf", [-0.66 -0.33  0.00], "Name", "NS");
+fzpi = addMF(fzpi, "du", "trimf", [-0.33  0.00  0.33], "Name", "ZR");
+fzpi = addMF(fzpi, "du", "trimf", [ 0.00  0.33  0.66], "Name", "PS");
+fzpi = addMF(fzpi, "du", "trimf", [ 0.33  0.66  1.00], "Name", "PM");
+fzpi = addMF(fzpi, "du", "trimf", [ 0.66  1.00  1.00], "Name", "PL");
+% Define the output MF index map (9x9), values from 1 to 7 matching your output MFs
+du_map = [
+1 1 1 1 1 1 2 3 4
+1 1 1 1 1 2 3 4 5
+1 1 1 1 2 3 4 5 6
+1 1 1 2 3 4 5 6 7
+1 1 2 3 4 5 6 7 7
+1 2 3 4 5 6 7 7 7
+2 3 4 5 6 7 7 7 7
+3 4 5 6 7 7 7 7 7
+4 5 6 7 7 7 7 7 7
+];
+% Build rules as [e_index, de_index, du_index, weight, connection]
+rules = [];
+for e_idx = 1:9
+for de_idx = 1:9
+  du_idx = du_map(e_idx, de_idx);
+  rules = [rules; e_idx, de_idx, du_idx, 1, 1];
+end
+end
+% Add rules to fuzzy inference system
+fzpi = addRule(fzpi, rules);
+% --- PLOT CONTROL SURFACE ---
+gensurf(fzpi, [1 2], 1);  % inputs: e (1), de (2); output: du (1)
+title("FZPI Control Surface");
+xlabel("e"); ylabel("de"); zlabel("du");
+out11 = evalfis(fzpi, [1 1])
+% --- Discretize the plant ---
+% K was chosen from PI tuning
+s = tf('s');
+Gp = 25/((s+0.1)*(s+10));
+K = 1.66;
+Controlled_plant = Gp*K
+Ts = 0.01;
+Gd = c2d(Controlled_plant, Ts);
+% --- Simulation setup ---
+N = 1000;                      % number of samples
+t = (0:N-1)*Ts;                % time vector
+r = 50*ones(1, N);                % step input
+y = zeros(1, N);               % output
+e = zeros(1, N);               % error
+de = zeros(1, N);              % delta error
+du = zeros(1, N);              % delta u
+u = zeros(1, N);               % control input
+% --- Initialize discrete plant state ---
+[Ad, Bd, Cd, Dd] = ssdata(Gd);
+x = zeros(size(Ad,1), 1);      % plant state
+% --- Simulation loop ---
+% Scaling factors
+Ke = 1/50;    % scale for error
+Kde = 0.427  ;    % scale for delta error
+Kdu = 9;    % scale for delta U
+for k = 2:N
+  e(k) = r(k) - y(k-1);
+  de(k) = e(k) - e(k-1);
+  % normalize error for fuzzy input
+e_norm = max(min(Ke*e(k), 1), -1);
+de_norm = max(min(Kde*de(k), 1), -1);
+  % evaluate fuzzy controller
+  du_norm = evalfis(fzpi, [e_norm de_norm]);
+  % denormalize du
+  du(k) = Kdu*du_norm;
+  u(k) = u(k-1) + du(k);
+  % simulate plant
+  x = Ad * x + Bd * u(k);
+  y(k) = Cd * x + Dd * u(k);
+end
+% --- Plot results ---
+figure;
+plot(t, y, 'LineWidth', 1.5); hold on;
+plot(t, r, '--', 'LineWidth', 1);
+xlabel('Time (s)');
+ylabel('Output');
+legend('y(t)', 'Reference');
+title('Closed-loop response with FZPI controller');
+grid on;
+
+
+________________
+
+
+Σχεδίαση FLC 
+Απόκριση του Fuzzy Logic Controller
+Η κλειστή απόκριση του συστήματος με τον FLC παρουσιάζει γρήγορη άνοδο προς την τιμή αναφοράς, γεγονός που δείχνει άμεση αντίδραση του ελεγκτή στο σφάλμα. Παρατηρείται υπερύψωση και αρχικές ταλαντώσεις, οι οποίες όμως αποσβένονται σχετικά γρήγορα, οδηγώντας σε σταθεροποίηση γύρω από την τιμή αναφοράς. Έτσι, εξασφαλίζεται μηδενικό σφάλμα μόνιμης κατάστασης, με τίμημα την παρουσία ταλαντώσεων στο μεταβατικό στάδιο. Συνολικά, ο ελεγκτής επιτυγχάνει σταθερότητα και ικανοποιητική ταχύτητα απόκρισης.
+
+Overshoot 5.6 % ,tr = 0.29 s
+
+
+PS=0.25 , ZR = 0
+  
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+
+  
+
+________________
+
+
+Επιφάνεια ελέγχου (Control Surface – gensurf)
+Το τρισδιάστατο γράφημα του ελεγκτή αποτυπώνει τη σχέση μεταξύ του σφάλματος (e), της μεταβολής του σφάλματος (de) και της μεταβολής του σήματος ελέγχου (du). Παρατηρείται ότι:
+            * Για μεγάλα θετικά σφάλματα, το σήμα ελέγχου αυξάνεται έντονα, ενώ για μεγάλα αρνητικά σφάλματα μειώνεται αναλόγως, γεγονός που εξασφαλίζει ισχυρές διορθωτικές ενέργειες.
+
+            * Η επιφάνεια είναι συμμετρική, κάτι που υποδηλώνει ισόρροπη αντίδραση τουτου ελεγκτή σε θετικά και αρνητικά σφάλματα.
+
+            * Στην περιοχή γύρω από το μηδενικό σφάλμα, η έξοδος μεταβάλλεται ομαλά και με μικρή ένταση, ώστε να αποφεύγονται απότομες αλλαγές στο σήμα ελέγχου.
+
+Η μορφή της επιφάνειας επιβεβαιώνει ότι οι κανόνες του ελεγκτή είναι κατάλληλα διαμορφωμένοι για να συνδυάζουν την τιμή του σφάλματος και τη μεταβολή του, οδηγώντας σε ισορροπημένες και προοδευτικές ενέργειες ελέγχου. 
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+Παρακολούθηση διαφορετικών σημάτων εισόδων
+
+
+
+
+
+
+
+
+Ts = 0.01;
+N = 2000;                     
+t = (0:N-1)*Ts;                
+
+
+%%%
+% --- Simulation setup ---
+N = 2000; % number of samples
+t = (0:N-1)*Ts; % time vector
+r = zeros(1,N);
+r(t < 5) = 50; % 0–5 s
+r(t >= 5 & t < 10) = 20; % 5–10 s
+r(t >= 10) = 40; % 10–20 s
+y = zeros(1, N); % output
+e = zeros(1, N); % error
+de = zeros(1, N); % delta error
+du = zeros(1, N); % delta u
+u = zeros(1, N); % control input
+% --- Initialize discrete plant state ---
+[Ad, Bd, Cd, Dd] = ssdata(Gd);
+x = zeros(size(Ad,1), 1); % plant state
+% --- Simulation loop ---
+% Scaling factors
+Ke = 1/50; % scale for error
+Kde = 0.427 ; % scale for delta error
+Kdu = 9; % scale for delta U
+for k = 2:N
+e(k) = r(k) - y(k-1);
+de(k) = e(k) - e(k-1);
+% normalize error for fuzzy input
+e_norm = max(min(Ke*e(k), 1), -1);
+de_norm = max(min(Kde*de(k), 1), -1);
+% evaluate fuzzy controller
+du_norm = evalfis(fzpi, [e_norm de_norm]);
+% denormalize du
+du(k) = Kdu*du_norm;
+u(k) = u(k-1) + du(k);
+% simulate plant
+x = Ad * x + Bd * u(k);
+y(k) = Cd * x + Dd * u(k);
+end
+% --- Plot results ---
+figure;
+plot(t, y, 'LineWidth', 1.5); hold on;
+plot(t, r, '--', 'LineWidth', 1);
+xlabel('Time (s)');
+ylabel('Output');
+legend('y(t)', 'Reference');
+title('Closed-loop response with FZPI controller');
+grid on;
+% --- Simulation setup ---
+N = 2000; % number of samples
+t = (0:N-1)*Ts; % time vector
+r = zeros(1,N);
+r(t < 5)              = 10 * t(t < 5);
+r(t >= 5 & t < 10)    = 50;
+r(t >= 10)            = -5 * t(t >= 10) + 100;
+y = zeros(1, N); % output
+e = zeros(1, N); % error
+de = zeros(1, N); % delta error
+du = zeros(1, N); % delta u
+u = zeros(1, N); % control input
+% --- Initialize discrete plant state ---
+[Ad, Bd, Cd, Dd] = ssdata(Gd);
+x = zeros(size(Ad,1), 1); % plant state
+% --- Simulation loop ---
+% Scaling factors
+Ke = 1/50; % scale for error
+Kde = 0.427 ; % scale for delta error
+Kdu = 9; % scale for delta U
+for k = 2:N
+e(k) = r(k) - y(k-1);
+de(k) = e(k) - e(k-1);
+% normalize error for fuzzy input
+e_norm = max(min(Ke*e(k), 1), -1);
+de_norm = max(min(Kde*de(k), 1), -1);
+% evaluate fuzzy controller
+du_norm = evalfis(fzpi, [e_norm de_norm]);
+% denormalize du
+du(k) = Kdu*du_norm;
+u(k) = u(k-1) + du(k);
+% simulate plant
+x = Ad * x + Bd * u(k);
+y(k) = Cd * x + Dd * u(k);
+end
+% --- Plot results ---
+figure;
+plot(t, y, 'LineWidth', 1.5); hold on;
+plot(t, r, '--', 'LineWidth', 1);
+xlabel('Time (s)');
+ylabel('Output');
+legend('y(t)', 'Reference');
+title('Closed-loop response with FZPI controller');
+grid on;
+
+
+
+
+Σχήμα 1.
+
+
+r = zeros(1,N);
+r(t < 5) = 50;              % 0–5 s
+r(t >= 5 & t < 10) = 20;     % 5–10 s
+r(t >= 10) = 40;             % 10–20 s
+
+  
+
+
+Σχήμα 2.
+
+
+r(t<5) = 10*t
+r( t >= 5 & t < 10) = 50;
+r(t>=10) = -5*t+100;
+
+
+
+
+
+
+
+
+  
+
+
+Σχολιασμός: ο ελεγκτής φαίνεται ιδιαίτερα αποτελεσματικός να ακολουθεί συναρτήσεις ράμπας (1% overshoot max) καθώς αυτές έχουν μικρές αλλαγές στην μονάδα χρόνου και ο ελεγκτής προσαρμόζει την έξοδο ομαλά.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+B_CarControl
+
+
+Mamdani car control fis
+
+
+
+
+[System]
+Name='car control'
+Type='mamdani'
+Version=2.0
+NumInputs=3
+NumOutputs=1
+NumRules=27
+AndMethod='min'
+OrMethod='max'
+ImpMethod='min'
+AggMethod='max'
+DefuzzMethod='centroid'
+[Input1]
+Name='dv'
+Range=[0 1]
+NumMFs=3
+MF1='S':'trimf',[0 0 0.5]
+MF2='M':'trimf',[0 0.5 1]
+MF3='L':'trimf',[0.5 1 1]
+[Input2]
+Name='dh'
+Range=[0 1]
+NumMFs=3
+MF1='S':'trimf',[0 0 0.5]
+MF2='M':'trimf',[0 0.5 1]
+MF3='L':'trimf',[0.5 1 1]
+[Input3]
+Name='theta'
+Range=[-180 180]
+NumMFs=3
+MF1='N':'trimf',[-180 -180 50]
+MF2='ZE':'trimf',[-180 0 180]
+MF3='P':'trimf',[0 180 180]
+[Output1]
+Name='dtheta'
+Range=[-110 110]
+NumMFs=3
+MF1='N':'trimf',[-110 -110 0]
+MF2='ZE':'trimf',[-110 0 110]
+MF3='P':'trimf',[0 110 110]
+[Rules]
+1 1 1, 3 (1) : 1
+2 1 1, 3 (1) : 1
+3 1 1, 3 (1) : 1
+1 2 1, 3 (1) : 1
+2 2 1, 3 (1) : 1
+3 2 1, 3 (1) : 1
+1 3 1, 3 (1) : 1
+2 3 1, 3 (1) : 1
+3 3 1, 3 (1) : 1
+1 1 2, 3 (1) : 1
+2 1 2, 2 (1) : 1
+3 1 2, 3 (1) : 1
+1 2 2, 2 (1) : 1
+2 2 2, 2 (1) : 1
+3 2 2, 2 (1) : 1
+1 3 2, 2 (1) : 1
+2 3 2, 2 (1) : 1
+3 3 2, 2 (1) : 1
+1 1 3, 2 (1) : 1
+2 1 3, 2 (1) : 1
+3 1 3, 2 (1) : 1
+1 2 3, 1 (1) : 1
+2 2 3, 1 (1) : 1
+3 2 3, 1 (1) : 1
+1 3 3, 1 (1) : 1
+2 3 3, 1 (1) : 1
+3 3 3, 1 (1) : 1
+
+
+Helper functions
+
+
+
+
+function draw_obstacles()
+% Draws the staircase obstacle boundary
+segments = { ...
+   [5 0; 5 1];   % vertical at x=5
+   [5 1; 6 1];   % horizontal at y=1
+   [6 1; 6 2];   % vertical at x=6
+   [6 2; 7 2];   % horizontal at y=2
+   [7 2; 7 3];   % vertical at x=7
+   [7 3; 10 3]   % horizontal at y=3
+};
+hold on; axis equal
+for k = 1:numel(segments)
+   p = segments{k};
+   plot(p(:,1), p(:,2), 'k-', 'LineWidth', 2);
+end
+xlabel('X'); ylabel('Y');
+title('Obstacle Boundary');
+end
+
+
+
+
+
+
+
+
+function [dh, dv] = obstacle_axis_dist(x,y)
+% Range-limited distances from (x,y) to obstacle boundary
+% dh ∈ [0,1] distance to nearest obstacle to the right (max 1m)
+% dv ∈ [0,1] distance to nearest obstacle below (max 1m)
+dh = 1;
+dv = 1;
+segments = { ...
+   [5 0; 5 1];  % vertical at x=5
+   [5 1; 6 1];  % horizontal at y=1
+   [6 1; 6 2];  % vertical at x=6
+   [6 2; 7 2];  % horizontal at y=2
+   [7 2; 7 3];  % vertical at x=7
+   [7 3; 10 3]   % horizontal at y=3
+};
+for k = 1:numel(segments)
+   p1 = segments{k}(1,:);
+   p2 = segments{k}(2,:);
+  
+   % vertical segment → check right
+   if p1(1)==p2(1)
+       xv = p1(1);
+       ylow = min(p1(2),p2(2));
+       yhigh = max(p1(2),p2(2));
+       if y>=ylow && y<=yhigh
+           distx = xv - x;
+           if distx >= 0 && distx <= 1
+               dh = min(dh,distx);
+           end
+       end
+   end
+  
+   % horizontal segment → check down
+   if p1(2)==p2(2)
+       yh = p1(2);
+       xlow = min(p1(1),p2(1));
+       xhigh = max(p1(1),p2(1));
+       if x>=xlow && x<=xhigh
+           distv = y - yh;   % positive if obstacle below
+           if distv >= 0 && distv <= 1
+               dv = min(dv,distv);
+           end
+       end
+   end
+end
+end
+
+
+
+
+
+
+
+Simulation using starting fis
+
+
+%% Car Control Simulation for Different Initial Orientations
+% Simulation parameters
+xd = 10;       % target X
+yd = 3.2;      % target Y
+u = 0.05;      % forward speed
+Xinit = 4;
+Yinit = 0.4;
+dt = 1;        % time step
+nSteps = 2000; % maximum number of steps
+% Initial orientations
+thetas = [0, -45, -90, -170];
+colors = ['r', 'g', 'b', 'm']; % colors for each path
+% Load FLC
+carControl = readfis('car_control_starting.fis');
+% Draw obstacles
+draw_obstacles();
+hold on;
+% Loop over each initial orientation
+for i = 1:length(thetas)
+   carX = Xinit;
+   carY = Yinit;
+   carTheta = thetas(i);
+   Xhist = zeros(1, nSteps);
+   Yhist = zeros(1, nSteps);
+   % Simulation loop
+   for k = 1:nSteps
+       % Sense environment
+       [dh, dv] = obstacle_axis_dist(carX, carY);
+       % Compute steering
+       dtheta = evalfis(carControl, [dv dh carTheta]);
+       carTheta = max(-180, min(180, carTheta + dtheta));
+       % Motion update
+       carX = carX + u * cosd(carTheta) * dt;
+       carY = carY + u * sind(carTheta) * dt;
+       % Store position
+       Xhist(k) = carX;
+       Yhist(k) = carY;
+       % Stop if target reached
+       if carX >= xd
+           Xhist = Xhist(1:k);
+           Yhist = Yhist(1:k);
+           break;
+       end
+   end
+   % Plot path
+   plot(Xhist, Yhist, [colors(i) '-o'], 'LineWidth', 1.5, 'DisplayName', ['theta = ' num2str(thetas(i)) '°']);
+end
+xlabel('X'); ylabel('Y');
+axis equal;
+grid on; title('Car Paths for Different Initial Orientations');legend show;  
+
+
+
+
+
+
+Simulation using my fis
+
+
+
+
+% Load Fuzzy Logic Controller
+carControl = readfis('car_control.fis');
+  
+
+
+
+
+
+
+
+
+
+
+
+Regression
+
+
+1st part
+Training: regression_training.m
+Run main1.m
+Αποτελέσματα
+Model
+	R²
+	RMSE
+	NMSE
+	NDEI
+	1
+	0.401
+	5.11
+	0.599
+	0.774
+	2
+	-5.86
+	17.29
+	6.861
+	2.619
+	3
+	0.719
+	3.50
+	0.281
+	0.530
+	4
+	-1094
+	218.44
+	1095.1
+	33.09
+	
+
+Το Μοντέλο 3 παρουσίασε την καλύτερη απόδοση, με R²≈0.72 και RMSE≈3.5, καταγράφοντας και τις χαμηλότερες τιμές NMSE και NDEI. Αυτό δείχνει ότι το μοντέλο καταφέρνει να αποδώσει ικανοποιητικά τις μη γραμμικότητες των δεδομένων, χωρίς υπερβολική υπερεκπαίδευση, και προσφέρει την πιο αξιόπιστη γενίκευση σε σχέση με τα υπόλοιπα.
+
+
+Το Μοντέλο 1 εμφάνισε μέτρια προσαρμογή (R²≈0.40, RMSE≈5.1), με σχετικά ομαλή συμπεριφορά αλλά περιορισμένη ικανότητα γενίκευσης.
+
+Το Μοντέλο 2 είχε πολύ κακή απόδοση (R²≈-5.86, RMSE≈17.3), υποδεικνύοντας υπερβολικά τοπικές αποκλίσεις και αδυναμία γενίκευσης.
+
+Το Μοντέλο 4 κατέρρευσε πλήρως (R²≈-1094, RMSE≈218), καθώς η υπερβολική διαμέριση του χώρου εισόδου οδήγησε σε ακραία πολυπλοκότητα και μηδενική ικανότητα πρόβλεψης.
+
+
+
+
+________________
+
+
+Σχολιασμός καμπυλών
+               * Καμπύλες μάθησης (Model 3): το training error παραμένει χαμηλό και σταθερό, ενώ το validation error είναι ελαφρώς υψηλότερο και πιο ασταθές, χωρίς όμως τάσεις εκτροχιασμού → περιορισμένη αλλά ανεκτή υπερεκπαίδευση.
+
+               * True vs Predicted (Model 3): οι προβλέψεις συγκεντρώνονται κοντά στη διαγώνιο, με καλή γραμμική συσχέτιση.
+
+               * Residuals (Model 3): τα σφάλματα είναι κατανεμημένα γύρω από το μηδέν, χωρίς εμφανές μοτίβο, αν και παρατηρούνται ορισμένα outliers (>15).
+
+________________
+
+
+Συμπέρασμα
+Το Μοντέλο 3 είναι το μόνο που πέτυχε ικανοποιητική ισορροπία ανάμεσα σε ακρίβεια και γενίκευση. Με R²≈0.72, RMSE≈3.5 και NDEI≈0.53, μπορεί να θεωρηθεί επαρκές για την παρούσα εργασία, ενώ οι υπόλοιπες προσεγγίσεις είτε υποαπέδωσαν είτε υπερεκπαίδευσαν υπερβολικά.
+      
+Training: regressionB_training
+Run main2.m
+
+  
+
+
+Καμπυλη σφαλματος σε σχέση με αριθμό κανονων
+  
+
+
+
+Καμπυλη σφαλματος σε σχεση με αριθμο χαρακτηριστικων.
+  
+Παρατηρούμε πως στα 40 features το σφάλμα αυξάνεται απότομα για radious =0.3 οπότε έχουμε overfitting. 
+Η επιλογή radious = 0.5 με feature 40 χαρακτηριστικά πετυχαίνει τα καλύτερα αποτελέσματα.
+
+
+
+
+Προβλεψεις τελικου μοντελου/πραγματικες τιμες  
+Σφαλμα συναρτησει αριθμου επαναληψεων  
+Μεταβολή τυχαίου ασαφούς συνόλου 
+  
+Οι τελικές MFs δείχνουν πώς το μοντέλο κατανοεί τις διαφορετικές καταστάσεις του input μετά από training.
+Πινακας με δεικτες RMSE , NMSE,NDEI,R^2
+  
+Συμπερασματα 
+
+Τα αποτελέσματα του τελικού μοντέλου TSK, το οποίο εκπαιδεύτηκε με επιλογή χαρακτηριστικών μέσω Relief και Subtractive Clustering με ακτίνα συμπλέγματος 0.50 και 40 χαρακτηριστικά, κρίνονται ιδιαίτερα ικανοποιητικά.
+Συγκεκριμένα, ο συντελεστής προσδιορισμού R² ανέρχεται σε 0.833, γεγονός που σημαίνει ότι το μοντέλο εξηγεί πάνω από το 83% της συνολικής διακύμανσης της εξόδου. 
+Ο δείκτης RMSE υπολογίστηκε σε 13.95, τιμή που υποδηλώνει σχετικά μικρή απόκλιση μεταξύ των πραγματικών και των προβλεπόμενων τιμών. Επιπλέον, οι κανονικοποιημένοι δείκτες σφάλματος NMSE = 0.167 και NDEI = 0.408 βρίσκονται σε χαμηλά επίπεδα, στοιχείο που επιβεβαιώνει την καλή γενίκευση του μοντέλου. 
+Συνολικά, τα αποτελέσματα δείχνουν ότι η προτεινόμενη μεθοδολογία παρέχει υψηλή ακρίβεια πρόβλεψης, χωρίς να εμφανίζονται ενδείξεις έντονου υπερπροσαρμοσμού, και συνεπώς μπορεί να θεωρηθεί αξιόπιστη για το συγκεκριμένο πρόβλημα.
+Classification 
+        1st part
+disp(OAMatrix);
+   0.7213
+   0.6393
+   0.7213
+   0.7869
+>> disp(PAMatrix);
+   0.9130    0.1429
+   0.8605    0.1818
+   0.9149    0.0714
+   0.9574    0.2143
+>> disp(UAMatrix);
+   0.7778    0.3333
+   0.8043    0.2500
+   0.7679    0.2000
+   0.8036    0.6000
+disp(kMatrix);
+   0.1006
+   0.1891
+  -0.0177
+   0.2218
+Ορίστε μια συμπυκνωμένη, report-style έκδοση της απάντησης στο ερώτημα (4):
+________________
+
+
+Σχολιασμός Αποτελεσμάτων TSK Μοντέλων
+                  1. Επίδραση του αριθμού των κανόνων στην απόδοση
+ Η αύξηση του αριθμού των κανόνων βελτιώνει αρχικά την ικανότητα του μοντέλου να προσαρμοστεί στα δεδομένα εκπαίδευσης, μειώνοντας το training error. Ωστόσο, πέρα από ένα σημείο, εμφανίζεται υπερεκπαίδευση (overfitting), η οποία μειώνει την ακρίβεια στο σύνολο ελέγχου (OA) και αυξάνει την αστάθεια στις μετρήσεις PA και UA. Τα μοντέλα με πολύ λίγους κανόνες παρουσιάζουν υπόπροσαρμογή (underfitting), με χαμηλότερη OA και μεγαλύτερα λάθη σε συγκεκριμένες κλάσεις.
+
+                  2. Επικάλυψη των ασαφών συνόλων (Membership Functions)
+
+                     * Μικρή επικάλυψη: Τα σύνολα είναι “σφιχτά”, ενεργοποιείται περιορισμένος αριθμός κανόνων ανά δείγμα, οδηγώντας σε κοφτά boundaries και πιθανή αστάθεια στις προβλέψεις.
+
+                     * Μεγάλη επικάλυψη: Πολλοί κανόνες ενεργοποιούνται ταυτόχρονα, γεγονός που μπορεί να δημιουργήσει θόρυβο στις εξόδους και αύξηση της πολυπλοκότητας.
+
+                     * Μέτρια επικάλυψη: Προσφέρει ομαλές συναρτήσεις ενεργοποίησης και ισορροπημένη απόδοση, συνδυάζοντας επαρκή generalization με σωστή κατηγοριοποίηση.
+
+                        3. Απόδοση ταξινομητή
+ Οι δείκτες OA, PA, UA και το κˆ επιβεβαιώνουν ότι η χρήση κατάλληλου αριθμού κανόνων και σωστής επικάλυψης MF οδηγεί σε καλύτερη ταξινόμηση και πιο αξιόπιστες προβλέψεις ανά κλάση. Τα learning curves δείχνουν σταθεροποίηση του training και validation error με την αύξηση των εποχών, ενώ τα MF plots απεικονίζουν τη μορφή των ασαφών συνόλων μετά την εκπαίδευση.
+
+                        4. Προτάσεις βελτίωσης σχεδίασης τμήματος υπόθεσης
+
+                           * Χρήση τεχνικών pruning ή συγχώνευσης MFs για μείωση πολυπλοκότητας και βελτίωση generalization.
+
+                           * Εφαρμογή clustering ανά κλάση (class-dependent) για πιο καθαρούς και ερμηνεύσιμους κανόνες.
+
+                           * Δοκιμή προηγμένων μεθόδων όπως Gustafson-Kessel ή Gath-Geva για καλύτερη κατανομή των clusters.
+
+                           * Κανονικοποίηση ή weighting των κανόνων ώστε να μειωθεί η επίδραση υπερβολικών επικαλύψεων.
+
+                           * Επιλογή χαρακτηριστικών (feature selection) για να μειωθεί η διάσταση εισόδου και η πολυπλοκότητα κανόνων.
+
+                              5. Οπτικοποίηση
+ Συνιστάται η παρουσίαση:
+
+                                 * Learning curves (training/validation error ανά εποχή)
+
+                                 * Membership function plots για κάθε είσοδο και cluster
+
+                                 * Heatmaps ενεργοποίησης κανόνων ή overlap των MFs
+Αυτά παρέχουν σαφή εικόνα της επίδρασης των παραμέτρων του μοντέλου στην απόδοση.
+
+________________
+
+
+Αν θέλεις, μπορώ να σου φτιάξω και έτοιμο MATLAB snippet που θα δημιουργεί MF plots, learning curves και heatmaps ενεργοποίησης κανόνων ώστε να συνοδεύσει αυτόν τον σχολιασμό στην αναφορά. Θέλεις να το κάνω;
+Τέλεια—πάμε κατευθείαν στο (4): συμπεράσματα + τι διαγράμματα αξίζει να δείξεις + πώς να βελτιώσεις τον σχεδιασμό του τμήματος υπόθεσης (antecedent).
+Συζήτηση & συμπεράσματα
+Επίδραση του πλήθους κανόνων στην απόδοση
+                                    * Λίγοι κανόνες → υψηλό bias: υπο-προσαρμογή, ο ταξινομητής “χοντραίνει” τα σύνορα απόφασης· μικρές διακυμάνσεις στο validation error, σταθερό αλλά όχι κορυφαίο OA/κ.
+
+                                    * Πολλοί κανόνες → υψηλή διασπορά (variance): αρχικά ανεβαίνουν OA/κ, αλλά μετά από ένα σημείο εμφανίζεται overfitting· το validation error “ανοίγει” από το training, και το κ πέφτει ή πλατώρει παρότι το training error συνεχίζει να μειώνεται.
+
+                                    * Γλυκιά ισορροπία: το “σωστό” πλήθος κανόνων είναι όπου:
+
+                                       * το validation error έχει σαφές ελάχιστο,
+
+                                       * ο κ μεγιστοποιείται,
+
+                                       * οι PA/UA είναι ισορροπημένες (όχι πολύ καλή μία κλάση και κακή η άλλη).
+
+Στο σενάριο subtractive clustering, αυτό ισοδυναμεί με σωστή επιλογή radius: μικρό radius → πολλοί κανόνες, μεγάλο radius → λίγοι κανόνες.
+Επικάλυψη ασαφών συνόλων & ενεργοποίηση κανόνων
+                                          * Πολύ μικρή επικάλυψη: οι κανόνες γίνονται “κοφτοί”. Καλή ερμηνευσιμότητα, αλλά ραγδαίες αλλαγές στην έξοδο και “τρύπες” κάλυψης· πέφτει η ανάκτηση (PA) για περιοχές όπου τα δεδομένα είναι θορυβώδη.
+
+                                          * Πολύ μεγάλη επικάλυψη: πάρα πολλοί κανόνες ενεργοποιούνται ταυτόχρονα· αυξάνει η αβεβαιότητα στη συνάθροιση (Sugeno), μπορεί να βλέπεις αστάθεια στα decision boundaries και πτώση του κ λόγω “μαλάκωσης” των ορίων.
+
+                                          * Χρήσιμη επικάλυψη: 20–50% (χονδρικά) στα κύρια εύρη κάθε εισόδου αρκεί για ομαλά σύνορα χωρίς να “μπουκώνει” ο πυρήνας κανόνων. Η ομοιόμορφη/ισοκατανεμημένη επικάλυψη ανά είσοδο βοηθά να μην “κυριαρχεί” μία είσοδος.
+
+Τι να δείξεις σε διαγράμματα (ενδεικτικά)
+                                             1. Learning curves (τα έχεις ήδη): να φαίνεται το validation minimum και πού σταματάς (early stopping).
+
+                                             2. MFs μετά την εκπαίδευση: ήδη τα σχεδιάζεις· υπογράμμισε πού υπάρχει υπερ-επικάλυψη ή “τρύπες”.
+
+                                             3. Decision boundaries σε ζεύγη εισόδων (π.χ. (in1,in2), (in1,in3), (in2,in3)) με χρωματική απεικόνιση της εξόδου/τάξης.
+
+                                             4. Rule usage: ράβδοι με τον μέσο βαθμό ενεργοποίησης κάθε κανόνα στο validation/test· εντοπίζεις κανόνες-φαντάσματα (pruning) ή υπερ-ενεργούς (merge/regularize).
+
+                                             5. Δείκτης επικάλυψης MFs ανά είσοδο: heatmap της ∫min(μi, μj). Αν δεις μπλοκ υψηλής επικάλυψης, σκέψου merge ή αύξηση radius.
+
+Παρακάτω δίνω σύντομα snippets MATLAB για 3 και 5 ώστε να συνοδεύσεις τα σχόλια με σχήματα (χρησιμοποίησε το valFis και τα δικά σου data):
+% --- (A) Decision boundary για ζεύγος εισόδων (π.χ. in1-in2), κρατώντας in3 στο median ---
+pair = [1 2]; other = setdiff(1:3,pair);
+X = tstData(:,1:3);
+fixval = median(X(:,other));
+g = linspace(0,1,151);
+[G1,G2] = meshgrid(g,g);
+gridX = zeros(numel(G1),3);
+gridX(:,pair(1)) = G1(:);
+gridX(:,pair(2)) = G2(:);
+gridX(:,other) = fixval(1);           % αν 1 τρίτη είσοδος
+Z = evalfis(valFis,gridX);
+Zc = round(reshape(Z,size(G1)));
+figure; contourf(G1,G2,Zc, 'LineWidth',0.5); hold on;
+scatter(X(:,pair(1)),X(:,pair(2)),14,tstData(:,end),'filled'); 
+title(sprintf('Decision boundary (in%d vs in%d)',pair(1),pair(2)));
+xlabel(sprintf('in%d',pair(1))); ylabel(sprintf('in%d',pair(2)));
+
+
+% --- (B) Heatmap επικάλυψης MFs για συγκεκριμένη είσοδο k ---
+k = 1;                           % input index
+mfs = valFis.Inputs(k).MembershipFunctions;
+x = linspace(valFis.Inputs(k).Range(1), valFis.Inputs(k).Range(2), 1000);
+M = numel(mfs); Ov = zeros(M);
+mu = zeros(M,numel(x));
+for i=1:M
+    p = mfs(i).Parameters;
+    switch lower(mfs(i).Type)
+        case 'gaussmf', mu(i,:) = exp(-0.5*((x-p(2))/p(1)).^2);
+        case 'trimf',   mu(i,:) = max(min((x-p(1))/(p(2)-p(1)), (p(3)-x)/(p(3)-p(2))),0);
+        otherwise, warning('MF %s not handled', mfs(i).Type);
+    end
+end
+for i=1:M
+    for j=i:M
+        Ov(i,j) = trapz(x, min(mu(i,:),mu(j,:))) / trapz(x, max(mu(i,:),mu(j,:))+eps);
+        Ov(j,i) = Ov(i,j);
+    end
+end
+figure; imagesc(Ov); colorbar; axis square; 
+title(sprintf('MF overlap heatmap for input %d',k)); xlabel('MF'); ylabel('MF');
+
+
+Ιδέα ανάγνωσης: υψηλές τιμές κοντά στη διαγώνιο είναι αναμενόμενες· εκτός-διαγώνιες πολύ ψηλές δηλώνουν υπερ-επικάλυψη/πλεονασμό.
+Πρόταση βελτίωσης του antecedent (τμήμα υπόθεσης)
+                                                1. Data-driven επιλογή κανόνων με έλεγχο πολυπλοκότητας
+
+                                                   * Grid/BO πάνω στο radius με early stopping (validation minimum).
+
+                                                   * Pruning κανόνων με μικρή χρήση ή χαμηρή συνεισφορά στο κ/PA/UA: αφαίρεσε κανόνες με μέση ενεργοποίηση < τ (π.χ. 1–2%) και ξανα-εκπαίδευσε σύντομα.
+
+                                                      2. Καλύτερη παραμετροποίηση MFs (ανισοτροπία)
+
+                                                         * Οι κλάσεις μπορεί να είναι ελλειπτικές στον χώρο εισόδων. Χρησιμοποίησε Gustafson–Kessel / Gath–Geva (αν διαθέσιμο) ή Mahalanobis-based antecedents (ανισότροποι Gaussian κανόνες) αντί για ισότροπους. Αυτό μειώνει τον αριθμό κανόνων που απαιτούνται χωρίς απώλεια απόδοσης.
+
+                                                            3. Συγχώνευση εγγύτατων MFs
+
+                                                               * Αν δύο MFs για την ίδια είσοδο έχουν κέντρο κοντινό και υψηλό overlap index (π.χ. >0.7), merge σε μία MF και αναπροσάρμοσε τα σigmas.
+
+                                                                  4. Shared-σ regularization ανά είσοδο
+
+                                                                     * Περιόρισε τις διακυμάνσεις των πλάτων (σ) εντός [σ_min, σ_max] ή βάλε L2 penalty στη διαφορά σ μεταξύ γειτονικών MFs. Σταθεροποιεί τις καμπύλες, βελτιώνει γενίκευση.
+
+                                                                        5. Feature-aware clustering
+
+                                                                           * Αν κάποια είσοδος είναι αδύναμη (χαμηρή MI/ReliefF), μείωσε τον αριθμό MFs/κανόνων που την εμπλέκουν ή κάνε feature selection πριν το clustering.
+
+                                                                              6. Rule-weight learning
+
+                                                                                 * Μάθε βάρη κανόνων (π.χ. μέσω gradient σταθμισμένων ενεργοποιήσεων) και κάνε sparsity (L1) στα βάρη για αυτόματο pruning.
+
+                                                                                    7. Κανονικοποίηση & calibration εξόδου
+
+                                                                                       * Για Sugeno 0/1 consequents, εξέτασε threshold tuning αντί απλού rounding, ή δύο-στάδια (fuzzy → calibrated probability → threshold).
+
+________________
+
+
+TL;DR οδηγός
+                                                                                          * Δείξε: learning curves, MFs after training, decision boundaries (ζεύγη εισόδων), rule-usage bars, MF-overlap heatmaps.
+
+                                                                                          * Συμπέρασμα: υπάρχει σαφές trade-off #κανόνων ↔ γενίκευση· ψάξε το validation minimum και ισορροπημένα PA/UA.
+
+                                                                                          * Βελτίωση antecedent: ρύθμιση radius με early stopping, pruning/merge MFs με βάση usage & overlap, ανισότροποι Gaussian κανόνες (GK/GG), και feature-aware clustering.

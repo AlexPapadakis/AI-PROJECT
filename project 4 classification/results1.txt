@@ -1,0 +1,118 @@
+ΑΠΟΤΕΛΕΣΜΑΤΑ TSK ΜΟΝΤΕΛΩΝ:
+==========================================================
+
+ΜΟΝΤΕΛΟ                             |     OA |  PA(1)  PA(2) |  UA(1)  UA(2) |  Kappa
+--------------------------------------------------------------------------------
+Class-Dependent r=0.2 (Πολλοί κανόνες) | 0.639 | 0.800 0.188 | 0.735 0.250 | -0.014
+Class-Independent r=0.2 (Πολλοί κανόνες) | 0.492 | 0.737 0.133 | 0.683 0.167 | 0.046
+Class-Dependent r=0.8 (Λίγοι κανόνες) | 0.738 | 0.956 0.125 | 0.754 0.500 | 0.106
+Class-Independent r=0.8 (Λίγοι κανόνες) | 0.721 | 0.955 0.125 | 0.750 0.500 | 0.131
+
+ ΚΑΤΆΤΑΞΗ ΜΟΝΤΕΛΩΝ (κατά Overall Accuracy):
+ Class-Dependent r=0.8 (Λίγοι κανόνες): OA = 0.738 (73.8%)
+ Class-Independent r=0.8 (Λίγοι κανόνες): OA = 0.721 (72.1%)
+ Class-Dependent r=0.2 (Πολλοί κανόνες): OA = 0.639 (63.9%)
+4  Class-Independent r=0.2 (Πολλοί κανόνες): OA = 0.492 (49.2%)
+
+ ΑΝΑΛΥΣΗ ΠΑΡΑΓΟΝΤΩΝ ΕΠΙΔΡΑΣΗΣ:
+===============================================
+
+ ΕΠΙΔΡΑΣΗ RADIUS:
+ Μικρό radius (0.2): Μέσος OA = 0.566
+ Μεγάλο radius (0.8): Μέσος OA = 0.730
+ Διαφορά: 0.164
+ Μεγαλύτερο radius (0.8) είναι καλύτερο!
+   └─ Λιγότεροι κανόνες  καλύτερη γενίκευση
+
+ ΕΠΙΔΡΑΣΗ CLUSTERING STRATEGY:
+ Class-Dependent: Μέσος OA = 0.689
+ Class-Independent: Μέσος OA = 0.607
+ Διαφορά: 0.082
+ Class-Dependent clustering είναι καλύτερο!
+   └─ Καθαρότερα clusters ανά κλάση
+
+ ΑΝΑΛΥΣΗ ERROR MATRICES:
+=================================
+
+ Class-Dependent r=0.2 (Πολλοί κανόνες):
+   Confusion Matrix:
+   Predicted   |   1    2  | Total
+   True        |           |
+   Class 1      |  36   13  |  49
+   Class 2      |   9    3  |  12
+    True Positives: 36 (σωστά ως survived)
+    True Negatives: 3 (σωστά ως died)
+    False Positives: 9 (died  predicted survived)
+    False Negatives: 13 (survived  predicted died)
+     Προσοχή: Περισσότερα False Negatives (επικίνδυνο!)
+
+ Class-Independent r=0.2 (Πολλοί κανόνες):
+   Confusion Matrix:
+   Predicted   |   1    2  | Total
+   True        |           |
+   Class 1      |  28   13  |  41
+   Class 2      |  10    2  |  12
+    True Positives: 28 (σωστά ως survived)
+    True Negatives: 2 (σωστά ως died)
+    False Positives: 10 (died  predicted survived)
+    False Negatives: 13 (survived  predicted died)
+     Προσοχή: Περισσότερα False Negatives (επικίνδυνο!)
+
+ Class-Dependent r=0.8 (Λίγοι κανόνες):
+   Confusion Matrix:
+   Predicted   |   1    2  | Total
+   True        |           |
+   Class 1      |  43   14  |  57
+   Class 2      |   2    2  |   4
+    True Positives: 43 (σωστά ως survived)
+    True Negatives: 2 (σωστά ως died)
+    False Positives: 2 (died  predicted survived)
+    False Negatives: 14 (survived  predicted died)
+     Προσοχή: Περισσότερα False Negatives (επικίνδυνο!)
+
+ Class-Independent r=0.8 (Λίγοι κανόνες):
+   Confusion Matrix:
+   Predicted   |   1    2  | Total
+   True        |           |
+   Class 1      |  42   14  |  56
+   Class 2      |   2    2  |   4
+    True Positives: 42 (σωστά ως survived)
+    True Negatives: 2 (σωστά ως died)
+    False Positives: 2 (died  predicted survived)
+    False Negatives: 14 (survived  predicted died)
+     Προσοχή: Περισσότερα False Negatives (επικίνδυνο!)
+
+ ΛΕΠΤΟΜΕΡΗΣ ΑΝΑΛΥΣΗ ΚΑΛΥΤΕΡΟΥ ΜΟΝΤΕΛΟΥ:
+=============================================
+ ΚΑΛΥΤΕΡΟ: Class-Dependent r=0.8 (Λίγοι κανόνες)
+
+ ΠΛΗΡΕΙΣ ΜΕΤΡΙΚΕΣ:
+    Overall Accuracy: 0.738 (73.8%)
+    Producer's Accuracy:
+     - Class 1 (Survived): 0.956 (95.6%)
+     - Class 2 (Died): 0.125 (12.5%)
+    User's Accuracy:
+     - Class 1 (Survived): 0.754 (75.4%)
+     - Class 2 (Died): 0.500 (50.0%)
+    Kappa Statistic: 0.106
+
+ ΣΥΜΠΕΡΑΣΜΑΤΑ:
+================
+
+ ΑΠΑΝΤΗΣΕΙΣ ΣΤΑ ΕΡΕΥΝΗΤΙΚΑ ΕΡΩΤΗΜΑΤΑ:
+
+ "Ποια η επίδραση του αριθμού κανόνων στην απόδοση?"
+ Λιγότεροι κανόνες είναι καλύτεροι κατά 29.0%
+   └─ Μεγάλο radius  λιγότερα clusters  καλύτερη γενίκευση
+   └─ Πλεονέκτημα: Απλούστερο και πιο ερμηνεύσιμο μοντέλο
+
+ "Class-dependent vs Class-independent clustering?"
+ Class-dependent είναι καλύτερο κατά 13.5%
+   └─ Ξεχωριστό clustering ανά κλάση  καθαρότερα patterns
+
+ ΠΡΟΤΑΣΕΙΣ ΒΕΛΤΙΩΣΗΣ:
+1. Δοκιμή περισσότερων radius values για fine-tuning
+2. Ensemble μέθοδος συνδυάζοντας τα καλύτερα μοντέλα
+3. Cost-sensitive learning για ιατρικές εφαρμογές
+4. Feature engineering (age groups, risk categories)
+5. Cross-validation για πιο αξιόπιστη αξιολόγηση
