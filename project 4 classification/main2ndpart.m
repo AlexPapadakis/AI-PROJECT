@@ -11,17 +11,17 @@ fprintf('Samples: %d\n', size(data,1));
 fprintf('Features: %d\n', size(data,2)-1);
 fprintf('Classes: %d\n', length(unique(data(:,end))));
 
-% Grid search parameters - REDUCED FOR SPEED
-a = 3;          % Reduced from 5 to 3
-b = 3;          % Reduced from 7 to 3
+% Grid search parameters 
+a = 3;          % Number of feature options
+b = 3;          % Number of radius options
 
 % First param is num of features, second param is clusters ra
 gridSearchParams = zeros(a,b,2);
 
-gridSearchParams(1,:,1) = 15;   % Fewer combinations but still meaningful
+gridSearchParams(1,:,1) = 15;   
 gridSearchParams(2,:,1) = 25;
 gridSearchParams(3,:,1) = 35;
-gridSearchParams(:,1,2) = 0.3;  % Focus on middle range values
+gridSearchParams(:,1,2) = 0.3;  
 gridSearchParams(:,2,2) = 0.5;
 gridSearchParams(:,3,2) = 0.7;
 
@@ -67,30 +67,33 @@ for w = start_w:a
         numOfFeatures = gridSearchParams(w,z,1);
         ra = gridSearchParams(w,z,2);
         
+        % CRITICAL FIX: Do feature selection ONCE per grid point, not per CV fold
+        fprintf('  Running Relief feature selection for %d features...\n', numOfFeatures);
+        [idx,weights] = relieff(data(:,1:end-1), data(:,end), 5);
+        
+        % Select features once for this grid point
+        selectedFeatures = idx(1:numOfFeatures);
+        dataFS = [data(:, selectedFeatures), data(:, end)];
+        
         crossValOA = zeros(k,1);
-        cvPart = cvpartition(data(:,end),'KFold',k,'Stratify',true);
+        cvPart = cvpartition(dataFS(:,end),'KFold',k,'Stratify',true);
 
         % k-fold cross validation
         for iteration = 1:k
-            trnDataTemp = data(training(cvPart,iteration),:);
-            tstData = data(test(cvPart,iteration),:);
-            % cv partition is used to split trnDataTemp into trnData and
-            % chkData using stratification
-            cvPartitionTrn = cvpartition(trnDataTemp(:,end),'KFold',4,'Stratify',true);
-            trnData = trnDataTemp(training(cvPartitionTrn,1), :);
-            chkData = trnDataTemp(test(cvPartitionTrn,1), :);
+            fprintf('    CV Fold %d/%d\n', iteration, k);
             
-            % Feature selection
-            [idx,weights] = relieff( trnData(:,1:end-1), trnData(:,end),5);
+            trnDataTemp = dataFS(training(cvPart,iteration),:);
+            tstData = dataFS(test(cvPart,iteration),:);
             
-            trnDataFS = trnData( :, idx(1:numOfFeatures) );
-            trnDataFS = [ trnDataFS trnData( :, end)];
+            % Simple 80-20 split instead of nested CV
+            nTrain = round(0.8 * size(trnDataTemp,1));
+            trnData = trnDataTemp(1:nTrain, :);
+            chkData = trnDataTemp(nTrain+1:end, :);
             
-            chkDataFS = chkData( :, idx(1:numOfFeatures) );
-            chkDataFS = [ chkDataFS chkData( :, end) ];
-            
-            tstDataFS = tstData( :, idx(1:numOfFeatures) );
-            tstDataFS = [ tstDataFS tstData( :, end) ];
+            % Features are already selected - use directly
+            trnDataFS = trnData;
+            chkDataFS = chkData;
+            tstDataFS = tstData;
             
             
             % Clustering Per Class - Dynamic for any number of classes
@@ -160,12 +163,11 @@ for w = start_w:a
             fis2 = addRule(fis2,ruleList);
             
             % Train & Evaluate ANFIS
-            [trnFis,trnError,~,valFis,valError]=anfis(trnDataFS,fis2,[50 0 0.01 0.9 1.1],[],chkDataFS);  % Reduced epochs from 100 to 50
-            figure(1000);
-            plot([trnError valError],'LineWidth',2); grid on;
-            legend('Training Error','Validation Error');
-            xlabel('# of Epochs');
-            ylabel('Error');
+            [trnFis,trnError,~,valFis,valError]=anfis(trnDataFS,fis2,[100 0 0.01 0.9 1.1],[],chkDataFS);  % Back to 100 epochs
+            
+            % Don't plot during CV to save time
+            % figure(1000);
+            % plot([trnError valError],'LineWidth',2); grid on;
             Y=evalfis(tstDataFS(:,1:end-1),valFis);
             
             % Convert output back to class labels

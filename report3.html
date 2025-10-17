@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Αναφορά - Regression </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .student-info {
+            background: #ecf0f1;
+            padding: 20px;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .section h3 {
+            color: #34495e;
+            margin: 20px 0 15px 0;
+            font-size: 1.2rem;
+        }
+        
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 15px 0;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        
+        .matlab-comment {
+            color: #27ae60;
+        }
+        
+        .results-box {
+            background: #e8f5e8;
+            border: 1px solid #27ae60;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+        }
+        
+        .comparison-table th, 
+        .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .comparison-table th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .comparison-table .best-model {
+            background-color: #e8f5e8;
+            font-weight: bold;
+        }
+        
+        .comparison-table .worst-model {
+            background-color: #ffe8e8;
+        }
+        
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .image-caption {
+            font-style: italic;
+            color: #666;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .conclusion-box {
+            background: #e8f4fd;
+            border: 1px solid #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .conclusion-box h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Regression με Fuzzy Logic</h1>
+            <div class="subtitle">Σύγκριση Μοντέλων και TSK Implementation</div>
+        </div>
+        
+        <div class="student-info">
+            <strong>Φοιτητής:</strong> Αλέξανδρος Παπαδάκης 10125<br>
+             Regression Project 3<br>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>1ο Μέρος - Σύγκριση Μοντέλων</h2>
+                
+                <h3>Εκπαίδευση και Αξιολόγηση</h3>
+                <p>Για την εκπαίδευση των μοντέλων χρησιμοποιήθηκε το script <code>regression_training.m</code> και για την εκτέλεση το <code>main1.m</code>.</p>
+                
+                <h3>Αποτελέσματα Μοντέλων</h3>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Μοντέλο</th>
+                            <th>R²</th>
+                            <th>RMSE</th>
+                            <th>NMSE</th>
+                            <th>NDEI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Μοντέλο 1</td>
+                            <td>0.401</td>
+                            <td>5.11</td>
+                            <td>0.599</td>
+                            <td>0.774</td>
+                        </tr>
+                        <tr class="worst-model">
+                            <td>Μοντέλο 2</td>
+                            <td>-5.86</td>
+                            <td>17.29</td>
+                            <td>6.861</td>
+                            <td>2.619</td>
+                        </tr>
+                        <tr class="best-model">
+                            <td>Μοντέλο 3</td>
+                            <td>0.719</td>
+                            <td>3.50</td>
+                            <td>0.281</td>
+                            <td>0.530</td>
+                        </tr>
+                        <tr class="worst-model">
+                            <td>Μοντέλο 4</td>
+                            <td>-1094</td>
+                            <td>218.44</td>
+                            <td>1095.1</td>
+                            <td>33.09</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="results-box">
+                    <h4>Ανάλυση Αποτελεσμάτων:</h4>
+                    <p><strong>Μοντέλο 3 - Καλύτερη Απόδοση:</strong> Παρουσίασε την καλύτερη απόδοση με R² ≈ 0.72 και RMSE ≈ 3.5, καταγράφοντας τις χαμηλότερες τιμές NMSE και NDEI. Αυτό δείχνει ότι το μοντέλο καταφέρνει να αποδώσει ικανοποιητικά τις μη γραμμικότητες των δεδομένων, χωρίς υπερβολική υπερεκπαίδευση.</p>
+                    
+                    <p><strong>Μοντέλο 1 - Μέτρια Απόδοση:</strong> Εμφάνισε μέτρια προσαρμογή (R² ≈ 0.40, RMSE ≈ 5.1), με σχετικά ομαλή συμπεριφορά αλλά περιορισμένη ικανότητα γενίκευσης.</p>
+                    
+                    <p><strong>Μοντέλο 2 - Κακή Απόδοση:</strong> Είχε πολύ κακή απόδοση (R² ≈ -5.86, RMSE ≈ 17.3), υποδεικνύοντας υπερβολικά τοπικές αποκλίσεις και αδυναμία γενίκευσης.</p>
+                    
+                    <p><strong>Μοντέλο 4 - Πλήρης Κατάρρευση:</strong> Κατέρρευσε πλήρως (R² ≈ -1094, RMSE ≈ 218), καθώς η υπερβολική διαμέριση του χώρου εισόδου οδήγησε σε ακραία πολυπλοκότητα και μηδενική ικανότητα πρόβλεψης.</p>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images-regression/1.png" alt="Καμπύλες μάθησης μοντέλου 3">
+                    <div class="image-caption">ΕΙΚΟΝΑ 1: Καμπύλες μάθησης (Model 3)</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images-regression/2.png" alt="True vs Predicted μοντέλου 3">
+                    <div class="image-caption">ΕΙΚΟΝΑ 2: True vs Predicted (Model 3)</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images-regression/3.png" alt="Residuals μοντέλου 3">
+                    <div class="image-caption">ΕΙΚΟΝΑ 3: Residuals (Model 3)</div>
+                </div>
+                
+                <h3>Σχολιασμός Καμπυλών</h3>
+                <ul>
+                    <li><strong>Καμπύλες μάθησης (Model 3):</strong> Το training error παραμένει χαμηλό και σταθερό, ενώ το validation error είναι ελαφρώς υψηλότερο και πιο ασταθές, χωρίς όμως τάσεις εκτροχιασμού → περιορισμένη αλλά ανεκτή υπερεκπαίδευση.</li>
+                    <li><strong>True vs Predicted (Model 3):</strong> Οι προβλέψεις συγκεντρώνονται κοντά στη διαγώνιο, με καλή γραμμική συσχέτιση.</li>
+                    <li><strong>Residuals (Model 3):</strong> Τα σφάλματα είναι κατανεμημένα γύρω από το μηδέν, χωρίς εμφανές μοτίβο, αν και παρατηρούνται ορισμένα outliers (>15).</li>
+                </ul>
+                
+                <div class="conclusion-box">
+                    <h4>Συμπέρασμα 1ου Μέρους</h4>
+                    <p>Το <strong>Μοντέλο 3</strong> είναι το μόνο που πέτυχε ικανοποιητική ισορροπία ανάμεσα σε ακρίβεια και γενίκευση. Με R² ≈ 0.72, RMSE ≈ 3.5 και NDEI ≈ 0.53, μπορεί να θεωρηθεί επαρκές για την παρούσα εργασία, ενώ οι υπόλοιπες προσεγγίσεις είτε υποαπέδωσαν είτε υπερεκπαίδευσαν υπερβολικά.</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>2ο Μέρος - TSK Fuzzy Model</h2>
+                
+                <h3>Εκπαίδευση με Relief Feature Selection</h3>
+                <p>Για την εκπαίδευση του TSK fuzzy μοντέλου χρησιμοποιήθηκε το script <code>regressionB_training.m</code> και για την εκτέλεση το <code>main2.m</code>. Η μεθοδολογία περιλαμβάνει επιλογή χαρακτηριστικών μέσω Relief και Subtractive Clustering.</p>
+                
+                <div class="image-container">
+                    <img src="images-regression/4.png" alt="Relief Feature Selection">
+                    <div class="image-caption">ΕΙΚΟΝΑ 4: Relief Feature Selection Results</div>
+                </div>
+                
+                <h3>Βελτιστοποίηση Παραμέτρων</h3>
+                
+                <div class="image-container">
+                    <img src="images-regression/5.png" alt="Καμπύλη σφάλματος σε σχέση με αριθμό κανόνων">
+                    <div class="image-caption">ΕΙΚΟΝΑ 5: Καμπύλη σφάλματος σε σχέση με αριθμό κανόνων</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images-regression/6.png" alt="Καμπύλη σφάλματος σε σχέση με αριθμό χαρακτηριστικών">
+                    <div class="image-caption">ΕΙΚΟΝΑ 6: Καμπύλη σφάλματος σε σχέση με αριθμό χαρακτηριστικών</div>
+                </div>
+                
+                <div class="results-box">
+                    <h4>Παρατηρήσεις Βελτιστοποίησης:</h4>
+                    <p>Παρατηρούμε πως στα 40 features το σφάλμα αυξάνεται απότομα για radius = 0.3, οπότε έχουμε overfitting. Η επιλογή <strong>radius = 0.5 με 40 χαρακτηριστικά</strong> πετυχαίνει τα καλύτερα αποτελέσματα.</p>
+                </div>
+                
+                <h3>Αποτελέσματα Τελικού Μοντέλου</h3>
+                
+                <div class="image-container">
+                    <img src="images-regression/7.png" alt="Προβλέψεις τελικού μοντέλου">
+                    <div class="image-caption">ΕΙΚΟΝΑ 7: Προβλέψεις τελικού μοντέλου/πραγματικές τιμές</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images-regression/8.png" alt="Σφάλμα συναρτήσει αριθμού επαναλήψεων">
+                    <div class="image-caption">ΕΙΚΟΝΑ 8: Σφάλμα συναρτήσει αριθμού επαναλήψεων</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images-regression/9.png" alt="Μεταβολή τυχαίου ασαφούς συνόλου">
+                    <div class="image-caption">ΕΙΚΟΝΑ 9: Μεταβολή τυχαίου ασαφούς συνόλου</div>
+                </div>
+                
+                <p>Οι τελικές MFs δείχνουν πώς το μοντέλο κατανοεί τις διαφορετικές καταστάσεις του input μετά από training.</p>
+                
+                <div class="image-container">
+                    <img src="images-regression/1-.png" alt="Πίνακας με δείκτες">
+                    <div class="image-caption">ΕΙΚΟΝΑ 10: Πίνακας με δείκτες RMSE, NMSE, NDEI, R²</div>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">0.833</div>
+                        <div class="metric-label">R² (Coefficient of Determination)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">13.95</div>
+                        <div class="metric-label">RMSE (Root Mean Square Error)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0.167</div>
+                        <div class="metric-label">NMSE (Normalized Mean Square Error)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">0.408</div>
+                        <div class="metric-label">NDEI (Non-Dimensional Error Index)</div>
+                    </div>
+                </div>
+                
+                <div class="conclusion-box">
+                    <h4>Συμπεράσματα 2ου Μέρους</h4>
+                    <p>Τα αποτελέσματα του τελικού μοντέλου TSK, το οποίο εκπαιδεύτηκε με επιλογή χαρακτηριστικών μέσω Relief και Subtractive Clustering με ακτίνα συμπλέγματος 0.50 και 40 χαρακτηριστικά, κρίνονται ιδιαίτερα ικανοποιητικά.</p>
+                    
+                    <p>Συγκεκριμένα, ο συντελεστής προσδιορισμού <strong>R² = 0.833</strong> σημαίνει ότι το μοντέλο εξηγεί πάνω από το 83% της συνολικής διακύμανσης της εξόδου. Ο δείκτης <strong>RMSE = 13.95</strong> υποδηλώνει σχετικά μικρή απόκλιση μεταξύ των πραγματικών και των προβλεπόμενων τιμών.</p>
+                    
+                    <p>Επιπλέον, οι κανονικοποιημένοι δείκτες σφάλματος <strong>NMSE = 0.167</strong> και <strong>NDEI = 0.408</strong> βρίσκονται σε χαμηλά επίπεδα, στοιχείο που επιβεβαιώνει την καλή γενίκευση του μοντέλου.</p>
+                    
+                    <p><strong>Συνολικά,</strong> τα αποτελέσματα δείχνουν ότι η προτεινόμενη μεθοδολογία παρέχει υψηλή ακρίβεια πρόβλεψης, χωρίς να εμφανίζονται ενδείξεις έντονου υπερπροσαρμοσμού, και συνεπώς μπορεί να θεωρηθεί αξιόπιστη για το συγκεκριμένο πρόβλημα.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

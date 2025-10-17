@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Αναφορά - Ελεγκτές PI και Fuzzy Logic</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .student-info {
+            background: #ecf0f1;
+            padding: 20px;
+            border-bottom: 1px solid #bdc3c7;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .section h3 {
+            color: #34495e;
+            margin: 20px 0 15px 0;
+            font-size: 1.2rem;
+        }
+        
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 15px 0;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        
+        .matlab-comment {
+            color: #27ae60;
+        }
+        
+        .results-box {
+            background: #e8f5e8;
+            border: 1px solid #27ae60;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .equation {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.1rem;
+        }
+        
+        .image-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .image-caption {
+            font-style: italic;
+            color: #666;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Fuzzy & PI Controllers</h1>
+        </div>
+        
+        <div class="student-info">
+            <strong>Φοιτητής:</strong> Αλέξανδρος Παπαδάκης<br>
+            <strong>Μάθημα:</strong> 2024-2025 ΕΑΡ, CarControl B, FuzzyController 19
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>Σχεδίαση PI Ελεγκτή</h2>
+                
+                <h3>1. Μοντέλο Συστήματος</h3>
+                <p>Το προς έλεγχο σύστημα δίνεται από τη συνάρτηση μεταφοράς:</p>
+                <div class="equation">
+                    G<sub>p</sub>(s) = 25 / ((s + 0.1)(s + 10))
+                </div>
+                
+                <h3>2. Μορφή PI Ελεγκτή</h3>
+                <p>Ο PI ελεγκτής έχει τη μορφή:</p>
+                <div class="equation">
+                    G<sub>c</sub>(s) = K<sub>p</sub> * (s + c) / s
+                </div>
+                <p>όπου:</p>
+                <ul>
+                    <li>K<sub>p</sub>: αναλογικό κέρδος</li>
+                    <li>K<sub>i</sub> = K<sub>p</sub> * c: ολοκληρωτικό κέρδος</li>
+                </ul>
+                
+                <h3>3. Αρχική Επιλογή Παραμέτρων</h3>
+                <p>Για αρχικές τιμές επιλέχθηκαν:</p>
+                <ul>
+                    <li>K<sub>p</sub> = 1</li>
+                    <li>c = 0.2 → K<sub>i</sub> = 0.2</li>
+                </ul>
+                
+                <p>Η ανοιχτή συνάρτηση μεταφοράς είναι:</p>
+                <div class="equation">
+                    G<sub>ol</sub>(s) = G<sub>c</sub>(s) * G<sub>p</sub>(s) = [K<sub>p</sub> * (s + c) / s] * [25 / ((s + 0.1)(s + 10))]
+                </div>
+                
+                <h3>4. Κώδικας MATLAB</h3>
+                <div class="code-block">s = tf('s');
+Gp = 25/((s+0.1)*(s+10));
+Kp = 1;
+c = 0.2;
+Ki = Kp*c;
+Gc = Kp*(s+c)/s;
+Gol = Gc*Gp;
+figure
+rlocus(Gol);
+K = 0.225;
+T = feedback( K*Gc*Gp, 1);
+figure
+step(T);
+<span class="matlab-comment">% tr = 3s too slow. overshoot just <8%</span>
+<span class="matlab-comment">%%% will pick a new K with c = 0.2</span>
+figure
+K = 1.66;
+T = feedback(K*Gol,1);
+step(T);
+<span class="matlab-comment">%%%% tr = 0.43 s // overshoot 4%</span></div>
+                
+                <h3>5. Ανάλυση με Τόπο Ριζών</h3>
+                <p>Με χρήση MATLAB υπολογίστηκε ο τόπος ριζών και δοκιμάστηκαν διαφορετικές τιμές του κέρδους K.</p>
+                
+                <div class="image-container">
+                    <img src="images/1.png" alt="Τόπος Ριζών">
+                    <div class="image-caption">ΕΙΚΟΝΑ 1: Τόπος Ριζών</div>
+                </div>
+                
+                <p><strong>Για K = 0.225:</strong></p>
+                <ul>
+                    <li>Χρόνος ανόδου tr ≈ 3 s (πολύ αργός)</li>
+                    <li>Υπερύψωση < 8%</li>
+                </ul>
+                
+                <div class="image-container">
+                    <img src="images/2.png" alt="Απόκριση με K=0.225">
+                    <div class="image-caption">ΕΙΚΟΝΑ 2: Απόκριση βήματος με K = 0.225</div>
+                </div>
+                
+                <p><strong>Για K = 1.66:</strong></p>
+                <ul>
+                    <li>Χρόνος ανόδου tr ≈ 0.43 s</li>
+                    <li>Υπερύψωση ≈ 4% (αποδεκτή)</li>
+                </ul>
+                
+                <div class="image-container">
+                    <img src="images/3.png" alt="Απόκριση με K=1.66">
+                    <div class="image-caption">ΕΙΚΟΝΑ 3: Απόκριση βήματος με K = 1.66</div>
+                </div>
+                
+                <h3>6. Τελική Επιλογή Παραμέτρων</h3>
+                <div class="results-box">
+                    <p><strong>Η τελική επιλογή είναι:</strong></p>
+                    <ul>
+                        <li>K<sub>p</sub> = 1.66</li>
+                        <li>K<sub>i</sub> = K<sub>p</sub> * c = 1.66 * 0.2 = 0.332</li>
+                        <li>K<sub>a</sub> = 1</li>
+                    </ul>
+                    <p><strong>Άρα:</strong> Κ<sub>ol</sub> = K<sub>a</sub> * K<sub>p</sub> * 25</p>
+                    <p>Με K<sub>p</sub>=1 K<sub>a</sub>=1.66 Άρα το ίδιο με K<sub>p</sub>=1.66 K<sub>a</sub>=1</p>
+                </div>
+                
+                <p>Άρα, ο PI ελεγκτής γράφεται:</p>
+                <div class="equation">
+                    G<sub>c</sub>(s) = 1.66 * (s + 0.2) / s
+                </div>
+                <p>με K<sub>p</sub> = 1.66 και K<sub>i</sub> = 0.332</p>
+            </div>
+            
+            <div class="section">
+                <h2>Σχεδίαση Fuzzy Logic Controller (FLC)</h2>
+                
+                <h3>1. Κώδικας MATLAB για FLC</h3>
+                <div class="code-block"><span class="matlab-comment">% Create Mamdani-type FIS</span>
+fzpi = mamfis("Name", "FZPI");
+<span class="matlab-comment">% --- INPUT 1: e ∈ [-1, 1] ---</span>
+fzpi = addInput(fzpi, [-1 1], "Name", "e");
+fzpi = addMF(fzpi, "e", "trimf", [-1.00 -1.00 -0.75], "Name", "NV");
+fzpi = addMF(fzpi, "e", "trimf", [-1.00 -0.75 -0.50], "Name", "NL");
+fzpi = addMF(fzpi, "e", "trimf", [-0.75 -0.50 -0.25], "Name", "NM");
+fzpi = addMF(fzpi, "e", "trimf", [-0.50 -0.25  0.00], "Name", "NS");
+fzpi = addMF(fzpi, "e", "trimf", [-0.25  0.00  0.25], "Name", "ZR");
+fzpi = addMF(fzpi, "e", "trimf", [ 0.00  0.25  0.50], "Name", "PS");
+fzpi = addMF(fzpi, "e", "trimf", [ 0.25  0.50  0.75], "Name", "PM");
+fzpi = addMF(fzpi, "e", "trimf", [ 0.50  0.75  1.00], "Name", "PL");
+fzpi = addMF(fzpi, "e", "trimf", [ 0.75  1.00  1.00], "Name", "PV");
+
+<span class="matlab-comment">% --- INPUT 2: de ∈ [-1, 1] ---</span>
+fzpi = addInput(fzpi, [-1 1], "Name", "de");
+fzpi = addMF(fzpi, "de", "trimf", [-1.00 -1.00 -0.75], "Name", "NV");
+fzpi = addMF(fzpi, "de", "trimf", [-1.00 -0.75 -0.50], "Name", "NL");
+fzpi = addMF(fzpi, "de", "trimf", [-0.75 -0.50 -0.25], "Name", "NM");
+fzpi = addMF(fzpi, "de", "trimf", [-0.50 -0.25  0.00], "Name", "NS");
+fzpi = addMF(fzpi, "de", "trimf", [-0.25  0.00  0.25], "Name", "ZR");
+fzpi = addMF(fzpi, "de", "trimf", [ 0.00  0.25  0.50], "Name", "PS");
+fzpi = addMF(fzpi, "de", "trimf", [ 0.25  0.50  0.75], "Name", "PM");
+fzpi = addMF(fzpi, "de", "trimf", [ 0.50  0.75  1.00], "Name", "PL");
+fzpi = addMF(fzpi, "de", "trimf", [ 0.75  1.00  1.00], "Name", "PV");
+
+<span class="matlab-comment">% --- OUTPUT: du ∈ [-1, 1] ---</span>
+fzpi = addOutput(fzpi, [-1 1], "Name", "du");
+fzpi = addMF(fzpi, "du", "trimf", [-1.00 -1.00 -0.66], "Name", "NL");
+fzpi = addMF(fzpi, "du", "trimf", [-1.00 -0.66 -0.33], "Name", "NM");
+fzpi = addMF(fzpi, "du", "trimf", [-0.66 -0.33  0.00], "Name", "NS");
+fzpi = addMF(fzpi, "du", "trimf", [-0.33  0.00  0.33], "Name", "ZR");
+fzpi = addMF(fzpi, "du", "trimf", [ 0.00  0.33  0.66], "Name", "PS");
+fzpi = addMF(fzpi, "du", "trimf", [ 0.33  0.66  1.00], "Name", "PM");
+fzpi = addMF(fzpi, "du", "trimf", [ 0.66  1.00  1.00], "Name", "PL");
+
+<span class="matlab-comment">% Define the output MF index map (9x9), values from 1 to 7 matching your output MFs</span>
+du_map = [
+1 1 1 1 1 1 2 3 4
+1 1 1 1 1 2 3 4 5
+1 1 1 1 2 3 4 5 6
+1 1 1 2 3 4 5 6 7
+1 1 2 3 4 5 6 7 7
+1 2 3 4 5 6 7 7 7
+2 3 4 5 6 7 7 7 7
+3 4 5 6 7 7 7 7 7
+4 5 6 7 7 7 7 7 7
+];
+
+<span class="matlab-comment">% Build rules as [e_index, de_index, du_index, weight, connection]</span>
+rules = [];
+for e_idx = 1:9
+for de_idx = 1:9
+  du_idx = du_map(e_idx, de_idx);
+  rules = [rules; e_idx, de_idx, du_idx, 1, 1];
+end
+end
+
+<span class="matlab-comment">% Add rules to fuzzy inference system</span>
+fzpi = addRule(fzpi, rules);
+
+<span class="matlab-comment">% --- PLOT CONTROL SURFACE ---</span>
+gensurf(fzpi, [1 2], 1);  <span class="matlab-comment">% inputs: e (1), de (2); output: du (1)</span>
+title("FZPI Control Surface");
+xlabel("e"); ylabel("de"); zlabel("du");
+out11 = evalfis(fzpi, [1 1])</div>
+                
+                <h3>2. Προσομοίωση</h3>
+                <div class="code-block"><span class="matlab-comment">% --- Discretize the plant ---</span>
+<span class="matlab-comment">% K was chosen from PI tuning</span>
+s = tf('s');
+Gp = 25/((s+0.1)*(s+10));
+K = 1.66;
+Controlled_plant = Gp*K
+Ts = 0.01;
+Gd = c2d(Controlled_plant, Ts);
+
+<span class="matlab-comment">% --- Simulation setup ---</span>
+N = 1000;                      <span class="matlab-comment">% number of samples</span>
+t = (0:N-1)*Ts;                <span class="matlab-comment">% time vector</span>
+r = 50*ones(1, N);                <span class="matlab-comment">% step input</span>
+y = zeros(1, N);               <span class="matlab-comment">% output</span>
+e = zeros(1, N);               <span class="matlab-comment">% error</span>
+de = zeros(1, N);              <span class="matlab-comment">% delta error</span>
+du = zeros(1, N);              <span class="matlab-comment">% delta u</span>
+u = zeros(1, N);               <span class="matlab-comment">% control input</span>
+
+<span class="matlab-comment">% --- Initialize discrete plant state ---</span>
+[Ad, Bd, Cd, Dd] = ssdata(Gd);
+x = zeros(size(Ad,1), 1);      <span class="matlab-comment">% plant state</span>
+
+<span class="matlab-comment">% --- Simulation loop ---</span>
+<span class="matlab-comment">% Scaling factors</span>
+Ke = 1/50;    <span class="matlab-comment">% scale for error</span>
+Kde = 0.427  ;    <span class="matlab-comment">% scale for delta error</span>
+Kdu = 9;    <span class="matlab-comment">% scale for delta U</span>
+
+for k = 2:N
+  e(k) = r(k) - y(k-1);
+  de(k) = e(k) - e(k-1);
+  <span class="matlab-comment">% normalize error for fuzzy input</span>
+e_norm = max(min(Ke*e(k), 1), -1);
+de_norm = max(min(Kde*de(k), 1), -1);
+  <span class="matlab-comment">% evaluate fuzzy controller</span>
+  du_norm = evalfis(fzpi, [e_norm de_norm]);
+  <span class="matlab-comment">% denormalize du</span>
+  du(k) = Kdu*du_norm;
+  u(k) = u(k-1) + du(k);
+  <span class="matlab-comment">% simulate plant</span>
+  x = Ad * x + Bd * u(k);
+  y(k) = Cd * x + Dd * u(k);
+end
+
+<span class="matlab-comment">% --- Plot results ---</span>
+figure;
+plot(t, y, 'LineWidth', 1.5); hold on;
+plot(t, r, '--', 'LineWidth', 1);
+xlabel('Time (s)');
+ylabel('Output');
+legend('y(t)', 'Reference');
+title('Closed-loop response with FZPI controller');
+grid on;</div>
+                
+                <h3>3. Απόκριση του Fuzzy Logic Controller</h3>
+                <p>Η κλειστή απόκριση του συστήματος με τον FLC παρουσιάζει γρήγορη άνοδο προς την τιμή αναφοράς, γεγονός που δείχνει άμεση αντίδραση του ελεγκτή στο σφάλμα. Παρατηρείται υπερύψωση και αρχικές ταλαντώσεις, οι οποίες όμως αποσβένονται σχετικά γρήγορα, οδηγώντας σε σταθεροποίηση γύρω από την τιμή αναφοράς. Έτσι, εξασφαλίζεται μηδενικό σφάλμα μόνιμης κατάστασης, με τίμημα την παρουσία ταλαντώσεων στο μεταβατικό στάδιο. Συνολικά, ο ελεγκτής επιτυγχάνει σταθερότητα και ικανοποιητική ταχύτητα απόκρισης.</p>
+                
+                <div class="results-box">
+                    <p><strong>Συγκεκριμένα:</strong></p>
+                    <ul>
+                        <li>Overshoot: 5.6%</li>
+                        <li>tr = 0.29 s</li>
+                        <li>PS = 0.25, ZR = 0</li>
+                    </ul>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/4.png" alt="Απόκριση FLC">
+                   
+                
+                <div class="image-container">
+                    <img src="images/5.png" alt="Επιφάνεια ελέγχου">
+                     <div class="image-caption">ΕΙΚΟΝΑ 4: Απόκριση Fuzzy Logic Controller</div>
+                </div>
+                    <div class="image-caption"></div>
+                </div>
+                
+                <h3>4. Επιφάνεια ελέγχου (Control Surface – gensurf)</h3>
+                <p>Το τρισδιάστατο γράφημα του ελεγκτή αποτυπώνει τη σχέση μεταξύ του σφάλματος (e), της μεταβολής του σφάλματος (de) και της μεταβολής του σήματος ελέγχου (du). Παρατηρείται ότι:</p>
+                
+                <ul>
+                    <li>Για μεγάλα θετικά σφάλματα, το σήμα ελέγχου αυξάνεται έντονα, ενώ για μεγάλα αρνητικά σφάλματα μειώνεται αναλόγως, γεγονός που εξασφαλίζει ισχυρές διορθωτικές ενέργειες.</li>
+                    <li>Η επιφάνεια είναι συμμετρική, κάτι που υποδηλώνει ισόρροπη αντίδραση του ελεγκτή σε θετικά και αρνητικά σφάλματα.</li>
+                    <li>Στην περιοχή γύρω από το μηδενικό σφάλμα, η έξοδος μεταβάλλεται ομαλά και με μικρή ένταση, ώστε να αποφεύγονται απότομες αλλαγές στο σήμα ελέγχου.</li>
+                    <li>Η μορφή της επιφάνειας επιβεβαιώνει ότι οι κανόνες του ελεγκτή είναι κατάλληλα διαμορφωμένοι για να συνδυάζουν την τιμή του σφάλματος και τη μεταβολή του, οδηγώντας σε ισορροπημένες και προοδευτικές ενέργειες ελέγχου.</li>
+                </ul>
+                
+                <div class="image-container">
+                    <img src="images/6.png" alt="3D Control Surface">
+                    <div class="image-caption">ΕΙΚΟΝΑ 6: Τρισδιάστατη επιφάνεια ελέγχου</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>Παρακολούθηση διαφορετικών σημάτων εισόδων</h2>
+                
+                <h3>Σχήμα 1: Βηματικές Αλλαγές</h3>
+                <div class="code-block">Ts = 0.01;
+N = 2000;                     
+t = (0:N-1)*Ts;                
+
+<span class="matlab-comment">%%%</span>
+<span class="matlab-comment">% --- Simulation setup ---</span>
+N = 2000; <span class="matlab-comment">% number of samples</span>
+t = (0:N-1)*Ts; <span class="matlab-comment">% time vector</span>
+r = zeros(1,N);
+r(t < 5) = 50; <span class="matlab-comment">% 0–5 s</span>
+r(t >= 5 & t < 10) = 20; <span class="matlab-comment">% 5–10 s</span>
+r(t >= 10) = 40; <span class="matlab-comment">% 10–20 s</span></div>
+                
+                <div class="image-container">
+                    <img src="images/8.png" alt="Βηματικές αλλαγές">
+                    <div class="image-caption">ΕΙΚΟΝΑ 7: Απόκριση σε βηματικές αλλαγές<br>
+                </div>
+                
+                <h3>Σχήμα 2: Ράμπες</h3>
+                <div class="code-block">r = zeros(1,N);
+r(t < 5)              = 10 * t(t < 5);
+r(t >= 5 & t < 10)    = 50;
+r(t >= 10)            = -5 * t(t >= 10) + 100;</div>
+                
+                <div class="image-container">
+                    <img src="images/9.png" alt="Ράμπες">
+                    <div class="image-caption">ΕΙΚΟΝΑ 8: Απόκριση σε ράμπες<br>
+                </div>
+                
+                <h3>Σχολιασμός</h3>
+                <p>Ο ελεγκτής φαίνεται ιδιαίτερα αποτελεσματικός να ακολουθεί συναρτήσεις ράμπας (1% overshoot max) καθώς αυτές έχουν μικρές αλλαγές στην μονάδα χρόνου και ο ελεγκτής προσαρμόζει την έξοδο ομαλά.</p>
+            </div>
+        </div>
+    </div>
+</body>
