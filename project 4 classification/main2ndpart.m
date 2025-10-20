@@ -1,141 +1,138 @@
 clc;clear;
 
 % ============================================================================
-% OPTIMIZATIONS FOR FASTER TRAINING (while following all project requirements)
+% PART 2: HIGH DIMENSIONAL CLASSIFICATION WITH GRID SEARCH
+% Based on ΜΕΡΟΣ2.txt instructions and reference implementation
 % ============================================================================
-% 1. ANFIS epochs: 100 -> 25 (75% faster per training)
-% 2. Grid search: 2x2 (55% fewer combinations, 4 )
-% 3. ANFIS step size: 0.01 -> 0.02 (faster convergence)
-% 4. ANFIS display: disabled [0 0 0 0] (removes plotting overhead)
-% 5. ReliefF: added try-catch for optimized version
-% 
-% KEPT AS REQUIRED BY INSTRUCTIONS:
-% - 5-fold cross validation (explicitly required)
-% - 60-20-20 split (training-validation-test)
-% - Subtractive clustering per class
+% Requirements followed:
+% - 60-20-20 train-validation-test split (done once at start)
+% - 5-fold cross-validation for parameter selection
 % - ReliefF feature selection
-% - All other project requirements
-%
-% EXPECTED SPEEDUP: ~80-85% faster overall
+% - Subtractive clustering per class (class-dependent)
+% - Grid search over features and radius
+% - Constant output membership functions
 % ============================================================================
 
 disp("Start of script");
-% Read data and normalise - Epileptic Seizure Recognition dataset
+
+% Import dataset
 data = csvread('Epileptic Seizure Recognition.csv',1,1);
-data = normaliseData(data);
+dataTarget = data(:, end);
 
-% Dataset info
 fprintf('Dataset Info:\n');
-fprintf('Samples: %d\n', size(data,1));
-fprintf('Features: %d\n', size(data,2)-1);
-fprintf('Classes: %d\n', length(unique(data(:,end))));
+fprintf('  Samples: %d\n', size(data,1));
+fprintf('  Features: %d\n', size(data,2)-1);
+fprintf('  Classes: %d\n', length(unique(dataTarget)));
 
-% Grid search parameters - OPTIMIZED: Reduced to 2x2 for faster search
-a = 2;          % Number of feature options (reduced from 3)
-b = 2;          % Number of radius options (reduced from 3)
+% ============================================================================
+% STEP 1: Dataset split 60-20-20 and pre-processing (as per ΜΕΡΟΣ2.txt)
+% ============================================================================
+fprintf('\nSplitting dataset (60%% train, 20%% validation, 20%% test)...\n');
 
-% First param is num of features, second param is clusters ra
-gridSearchParams = zeros(a,b,2);
+% Use split_scale function or manual stratified split
+[trainData, validationData, testData] = split_scale(data, 1);
+trainTarget = trainData(:, end);
+validationTarget = validationData(:, end);
+testTarget = testData(:, end);
 
-gridSearchParams(1,:,1) = 15;   % Low feature count
-gridSearchParams(2,:,1) = 35;   % High feature count (skipping middle 25)
-gridSearchParams(:,1,2) = 0.3;  % Low radius (more clusters)
-gridSearchParams(:,2,2) = 0.7;  % High radius (fewer clusters, skipping 0.5)
+% Ensure data is in [0,1] range
+trainData = max(min(trainData, 1), 0);
+validationData = max(min(validationData, 1), 0);
+testData = max(min(testData, 1), 0);
 
-errors = zeros(a,b);
+fprintf('  Training set: %d samples\n', size(trainData,1));
+fprintf('  Validation set: %d samples\n', size(validationData,1));
+fprintf('  Test set: %d samples\n', size(testData,1));
 
-% Add progress saving
-results_file = 'grid_search_progress.mat';
-if exist(results_file, 'file')
-    fprintf('Loading previous progress...\n');
-    load(results_file, 'errors', 'completed_grid');
-    % IMPORTANT: Check if loaded data matches current grid size
-    if size(errors,1) ~= a || size(errors,2) ~= b
-        fprintf('Warning: Previous progress has different grid size (%dx%d vs %dx%d). Restarting...\n', ...
-            size(errors,1), size(errors,2), a, b);
-        errors = zeros(a,b);
-        completed_grid = zeros(a,b);
-        start_w = 1;
-    else
-        start_w = find(any(completed_grid == 0, 2), 1);
-        if isempty(start_w), start_w = a+1; end
-    end
-else
-    completed_grid = zeros(a,b);
-    start_w = 1;
-end
+% Get number of classes
+numClasses = length(unique(dataTarget));
+fprintf('  Number of classes: %d\n', numClasses);
 
-% Get number of classes dynamically
-numClasses = length(unique(data(:,end)));
-fprintf('Number of classes: %d\n', numClasses);
+% ============================================================================
+% STEP 2: Grid Search Algorithm for optimal parameters
+% ============================================================================
+fprintf('\n=== GRID SEARCH FOR OPTIMAL PARAMETERS ===\n');
 
-% k-fold cross validation is used - KEEPING 5-fold as requested
-k = 5;
+% Define grid search parameters
+numOfFeatures = [4 7 10 12];
+clusterRadius = [0.3 0.5 0.7];
 
-tic
-% Grid search with progress tracking
-total_combinations = a * b;
-current_combination = 0;
+% Number of folds for cross-validation (as per ΜΕΡΟΣ2.txt: 5-fold)
+numOfFolds = 5;
 
-for w = start_w:a
-    for z = 1:b
-        if completed_grid(w,z) == 1
-            continue; % Skip if already completed
-        end
+% Feature selection using ReliefF with k nearest neighbors
+fprintf('Running ReliefF feature selection on training data...\n');
+numOfNearestNeighbors = 10;
+[importanceIndexes, importanceWeights] = relieff(trainData(:,1:end-1), trainTarget, numOfNearestNeighbors, 'method', 'classification');
+fprintf('  Feature selection completed\n');
+
+% Output type: constant (as per ΜΕΡΟΣ2.txt note 1)
+outputMembershipFunctionType = 'constant';
+
+% Initialize result matrices
+grid_OAs = zeros(length(numOfFeatures), length(clusterRadius));
+grid_numOfRules = zeros(length(numOfFeatures), length(clusterRadius));
+grid_MSEs = zeros(length(numOfFeatures), length(clusterRadius));
+
+fprintf('\nStarting grid search over %d combinations...\n', length(numOfFeatures) * length(clusterRadius));
+tic;
+
+fprintf('\nStarting grid search over %d combinations...\n', length(numOfFeatures) * length(clusterRadius));
+tic;
+
+% Grid search loops
+combination = 0;
+for i = numOfFeatures
+    % Select features for this iteration
+    temp_train = [trainData(:, importanceIndexes(1:i)) trainTarget];
+    temp_val = [validationData(:, importanceIndexes(1:i)) validationTarget];
+    temp_test = [testData(:, importanceIndexes(1:i)) testTarget];
+    
+    for j = clusterRadius
+        combination = combination + 1;
+        fprintf('\n--- Combination %d/%d: Features=%d, Radius=%.1f ---\n', ...
+            combination, length(numOfFeatures)*length(clusterRadius), i, j);
         
-        current_combination = current_combination + 1;
-        fprintf('\n=== GRID SEARCH PROGRESS ===\n');
-        fprintf('Combination %d/%d: Features=%d, Radius=%.1f\n', ...
-            (w-1)*b + z, total_combinations, gridSearchParams(w,z,1), gridSearchParams(w,z,2));
-        fprintf('Progress: %.1f%% complete\n', ((w-1)*b + z)/total_combinations * 100);
+        % Define cvpartition for 5-fold CV (stratified as per ΜΕΡΟΣ2.txt)
+        cvObj = cvpartition(temp_train(:, end), 'KFold', numOfFolds);
         
-        tic_combination = tic;
-        numOfFeatures = gridSearchParams(w,z,1);
-        ra = gridSearchParams(w,z,2);
+        OAs = zeros(numOfFolds, 1);
+        cvMSE = zeros(numOfFolds, 1);
+        rulesNum_k = zeros(numOfFolds, 1);
         
-        % CRITICAL FIX: Do feature selection ONCE per grid point, not per CV fold
-        fprintf('  Running Relief feature selection for %d features...\n', numOfFeatures);
-        % OPTIMIZATION: Try to use parallel processing if available
-        try
-            [idx,weights] = relieff(data(:,1:end-1), data(:,end), 5, 'method', 'regression', 'updates', 10);
-        catch
-            [idx,weights] = relieff(data(:,1:end-1), data(:,end), 5);
-        end
-        
-        % Select features once for this grid point
-        selectedFeatures = idx(1:numOfFeatures);
-        dataFS = [data(:, selectedFeatures), data(:, end)];
-        
-        crossValOA = zeros(k,1);
-        cvPart = cvpartition(dataFS(:,end),'KFold',k,'Stratify',true);
-
-        % k-fold cross validation
-        for iteration = 1:k
-            fprintf('    CV Fold %d/%d\n', iteration, k);
+        % 5-fold cross-validation loop
+        for k = 1:numOfFolds
+            fprintf('  CV Fold %d/%d... ', k, numOfFolds);
             
-            trnDataTemp = dataFS(training(cvPart,iteration),:);
-            tstData = dataFS(test(cvPart,iteration),:);
+            % Get training and test indices for this fold
+            trainIdx = training(cvObj, k);
+            testIdx = test(cvObj, k);
             
-            % Simple 80-20 split instead of nested CV
-            nTrain = round(0.8 * size(trnDataTemp,1));
-            trnData = trnDataTemp(1:nTrain, :);
-            chkData = trnDataTemp(nTrain+1:end, :);
+            % Split: 80% for training (including ANFIS validation), 20% for testing
+            cv_trainValData = temp_train(trainIdx, :);
+            cv_testData = temp_train(testIdx, :);
+            cv_testTarget = cv_testData(:, end);
             
-            % Features are already selected - use directly
-            trnDataFS = trnData;
-            chkDataFS = chkData;
-            tstDataFS = tstData;
+            % Further split training data: 80% train, 20% validation (for ANFIS early stopping)
+            nTrainVal = size(cv_trainValData, 1);
+            nTrain = round(0.8 * nTrainVal);
             
+            % Stratified split for ANFIS validation
+            cv_partition = cvpartition(cv_trainValData(:, end), 'HoldOut', 0.2);
+            cv_trainData = cv_trainValData(training(cv_partition), :);
+            cv_validationData = cv_trainValData(test(cv_partition), :);
             
-            % Clustering Per Class - Dynamic for any number of classes
+            % ================================================================
+            % Clustering Per Class (as per ΜΕΡΟΣ2.txt note 2)
+            % ================================================================
             clusters = cell(numClasses, 1);
             sigmas = cell(numClasses, 1);
             num_rules = 0;
             
             for classIdx = 1:numClasses
-                classData = trnDataFS(trnDataFS(:,end) == classIdx, :);
-                if size(classData, 1) > 0  % Check if class has data
-                    [clusters{classIdx}, sigmas{classIdx}] = subclust(classData, ra);
+                classData = cv_trainData(cv_trainData(:, end) == classIdx, :);
+                if size(classData, 1) > 1  % Need at least 2 samples for clustering
+                    [clusters{classIdx}, sigmas{classIdx}] = subclust(classData, j);
                     num_rules = num_rules + size(clusters{classIdx}, 1);
                 else
                     clusters{classIdx} = [];
@@ -143,158 +140,154 @@ for w = start_w:a
                 end
             end
             
-            % Build FIS From Scratch using modern syntax
-            fis2 = sugfis('Name','FIS_SC');
-            
-            % Add Input-Output Variables using modern syntax
-            names_in = {};
-            for i = 1:size(trnDataFS,2)-1
-                num = int2str(i);
-                name = 'input';
-                name = strcat(name,num);
-                names_in = [names_in name];
+            % Safety check: ensure we have at least some rules
+            if num_rules == 0
+                error('No clusters generated! Radius %.1f might be too small.', j);
             end
-            for i = 1:size(trnDataFS,2)-1
-                fis2 = addInput(fis2,[0 1],'Name',names_in{i});
-            end
-            fis2 = addOutput(fis2,[0 1],'Name','out1');
             
-            % Add Input Membership Functions using modern syntax - Dynamic
-            for i = 1:size(trnDataFS,2)-1
+            % Debug: print rules per class for first fold only
+            if k == 1
+                fprintf('[%d rules: ', num_rules);
                 for classIdx = 1:numClasses
                     if ~isempty(clusters{classIdx})
-                        for j = 1:size(clusters{classIdx}, 1)
-                            fis2 = addMF(fis2, names_in{i}, 'gaussmf', ...
-                                [sigmas{classIdx}(i), clusters{classIdx}(j,i)]);
+                        fprintf('C%d=%d ', classIdx, size(clusters{classIdx}, 1));
+                    end
+                end
+                fprintf('] ');
+            end
+            
+            % ================================================================
+            % Build TSK FIS from scratch
+            % ================================================================
+            initialFIS = sugfis('Name', 'TSK_GridSearch');
+            
+            % Add inputs
+            for n = 1:size(cv_trainData, 2) - 1
+                initialFIS = addInput(initialFIS, [0, 1], 'Name', sprintf("in%d", n));
+                
+                % Add input membership functions from all class clusters
+                for classIdx = 1:numClasses
+                    if ~isempty(clusters{classIdx})
+                        for m = 1:size(clusters{classIdx}, 1)
+                            initialFIS = addMF(initialFIS, sprintf("in%d", n), 'gaussmf', ...
+                                [sigmas{classIdx}(n), clusters{classIdx}(m, n)]);
                         end
                     end
                 end
             end
             
-            % Add Output Membership Functions - Dynamic for any number of classes
+            % Add output (using class labels 1-5 directly, not normalized)
+            initialFIS = addOutput(initialFIS, [1, numClasses], 'Name', 'out1');
+            
+            % Add output membership functions (constant type)
+            % Use actual class values: 1, 2, 3, 4, 5
             params = [];
             for classIdx = 1:numClasses
                 if ~isempty(clusters{classIdx})
-                    % Normalize class values to [0,1] range
-                    classValue = (classIdx - 1) / (numClasses - 1);
-                    classParams = repmat(classValue, 1, size(clusters{classIdx}, 1));
+                    classParams = repmat(classIdx, 1, size(clusters{classIdx}, 1));
                     params = [params, classParams];
                 end
             end
-            for i = 1:num_rules
-                fis2 = addMF(fis2,'out1','constant',params(i));
+            
+            for n = 1:num_rules
+                initialFIS = addMF(initialFIS, 'out1', outputMembershipFunctionType, params(n));
             end
             
-            % Add FIS Rule Base using modern syntax
-            ruleList = zeros(num_rules,size(trnDataFS,2));
-            for i = 1:size(ruleList,1)
-                ruleList(i,:)=i;
+            % Add rule base
+            rulesList = zeros(num_rules, size(cv_trainData, 2));
+            for n = 1:num_rules
+                rulesList(n, :) = n;
             end
-            ruleList = [ruleList ones(num_rules,2)];
-            fis2 = addRule(fis2,ruleList);
+            rulesList = [rulesList, ones(num_rules, 2)];
+            initialFIS = addrule(initialFIS, rulesList);
             
-            % Train & Evaluate ANFIS - OPTIMIZED: Reduced epochs + relaxed error goal for faster training
-            % Parameters: [epochs, error_goal, step_size, step_inc, step_dec]
-            % Display options: [0 0 0 0] = no display for speed
-            [trnFis,trnError,~,valFis,valError]=anfis(trnDataFS,fis2,[25 0 0.02 0.9 1.1],[0 0 0 0],chkDataFS);  % 25 epochs, no display
+            % ================================================================
+            % Train with ANFIS (increased epochs for better convergence)
+            % ================================================================
+            ANFISoptions = anfisOptions;
+            ANFISoptions.InitialFIS = initialFIS;
+            ANFISoptions.EpochNumber = 100;
+            ANFISoptions.DisplayANFISInformation = 0;
+            ANFISoptions.DisplayErrorValues = 0;
+            ANFISoptions.DisplayStepSize = 0;
+            ANFISoptions.DisplayFinalResults = 0;
+            ANFISoptions.ValidationData = cv_validationData;
+            ANFISoptions.OptimizationMethod = 1;  % Hybrid method (backprop + LSE)
             
-            % Don't plot during CV to save time
-            % figure(1000);
-            % plot([trnError valError],'LineWidth',2); grid on;
-            Y=evalfis(tstDataFS(:,1:end-1),valFis);
+            [~, ~, ~, validationFIS, ~] = anfis(cv_trainData, ANFISoptions);
             
-            % Convert output back to class labels
-            Y = round(Y * (numClasses - 1)) + 1;  % Convert from [0,1] to class labels
-            Y = max(1, min(numClasses, Y));  % Clamp to valid class range
+            % Evaluate on the held-out TEST fold (NOT the validation data used for early stopping)
+            y_hat = evalfis(validationFIS, cv_testData(:, 1:end-1));
             
-            diff=tstDataFS(:,end)-Y;
-            Acc=(length(diff)-nnz(diff))/length(Y)*100;
+            % Round to nearest integer class and clip to valid range [1, numClasses]
+            y_hat = round(y_hat);
+            y_hat = max(min(y_hat, numClasses), 1);
             
-            classes = 1:numClasses;
-            errorMatrix = zeros(numClasses);
-            N = size(tstDataFS,1);
-            % Error matrix - Dynamic
-            for i = 1:numClasses
-                for j = 1:numClasses
-                    errorMatrix(i,j) = size( intersect( find( Y == classes(i) ) , find(tstDataFS(:,end) == classes(j) ) ) ,1);
-                end
-            end
+            % Calculate OA on test fold
+            N = size(cv_testData, 1);
+            OA = sum(y_hat == cv_testTarget) / N;
+            OAs(k) = OA;
             
-            % OA
-            sumCorrect = trace(errorMatrix);
-            OA = 1/N*sumCorrect;
+            % Save number of rules and MSE (on test fold)
+            rulesNum_k(k) = length(validationFIS.Rules);
+            cvMSE(k) = mse(y_hat, cv_testTarget);
             
-            % Save error for cross validation
-            crossValOA(iteration) = OA
-            
-            
+            fprintf('OA=%.4f\n', OA);
         end
-        % Find average of cross validation errors and save it
-        tempErrorOA = sum( crossValOA(:) ) / k;
-        errors(w,z) = tempErrorOA;
-        completed_grid(w,z) = 1;
         
-        % Save progress after each combination
-        save(results_file, 'errors', 'completed_grid', 'gridSearchParams');
+        % Store average results for this combination
+        grid_numOfRules(find(numOfFeatures == i), find(clusterRadius == j)) = mean(rulesNum_k);
+        grid_MSEs(find(numOfFeatures == i), find(clusterRadius == j)) = mean(cvMSE);
+        grid_OAs(find(numOfFeatures == i), find(clusterRadius == j)) = mean(OAs);
         
-        combination_time = toc(tic_combination);
-        fprintf('Combination completed in %.1f minutes\n', combination_time/60);
-        fprintf('Current error: %.4f\n', errors(w,z));
+        fprintf('  Average OA: %.4f (%.1f%%), MSE: %.4f, Rules: %.0f\n', ...
+            mean(OAs), mean(OAs)*100, mean(cvMSE), mean(rulesNum_k));
     end
 end
-toc
 
-%% GRID SEARCH RESULTS VISUALIZATION
-fprintf('\n=== GRID SEARCH RESULTS ===\n');
-fprintf('Best error: %.4f\n', min(errors(:)));
-[minError, idx] = min(errors(:));
-[bestFeatIdx, bestRadIdx] = ind2sub(size(errors), idx);
-% Debug info
-fprintf('Debug: bestFeatIdx=%d, bestRadIdx=%d, errors size=[%d %d]\n', bestFeatIdx, bestRadIdx, size(errors,1), size(errors,2));
-fprintf('Debug: gridSearchParams size=[%d %d %d]\n', size(gridSearchParams,1), size(gridSearchParams,2), size(gridSearchParams,3));
-% Ensure indices are within bounds
-bestFeatIdx = min(bestFeatIdx, size(gridSearchParams, 1));
-bestRadIdx = min(bestRadIdx, size(gridSearchParams, 2));
-bestFeatures = gridSearchParams(bestFeatIdx, bestRadIdx, 1);
-bestRadius = gridSearchParams(bestFeatIdx, bestRadIdx, 2);
-fprintf('Best parameters: %d features, radius %.1f\n', bestFeatures, bestRadius);
+elapsed_time = toc;
+fprintf('\nGrid search completed in %.1f minutes\n', elapsed_time/60);
 
-% Error vs Features plot
-figure(1);
-meanErrorsByFeatures = mean(errors, 2);
-plot(gridSearchParams(:,1,1), meanErrorsByFeatures, 'o-', 'LineWidth', 2);
-xlabel('Number of Features');
-ylabel('Mean Cross-Validation Error');
-title('Grid Search: Error vs Number of Features');
-grid on;
+elapsed_time = toc;
+fprintf('\nGrid search completed in %.1f minutes\n', elapsed_time/60);
 
-% Error vs Radius plot  
-figure(2);
-meanErrorsByRadius = mean(errors, 1);
-plot(gridSearchParams(1,:,2), meanErrorsByRadius, 's-', 'LineWidth', 2);
-xlabel('Radius');
-ylabel('Mean Cross-Validation Error');
-title('Grid Search: Error vs Radius');
-grid on;
+% ============================================================================
+% STEP 3: Save Results
+% ============================================================================
+fprintf('\n=== SAVING GRID SEARCH RESULTS ===\n');
 
-% 3D Surface plot
-figure(3);
-[X, Y] = meshgrid(gridSearchParams(1,:,2), gridSearchParams(:,1,1));
-surf(X, Y, errors);
-xlabel('Radius');
-ylabel('Number of Features');
-zlabel('Cross-Validation Error');
-title('Grid Search: 3D Error Surface');
-colorbar;
+% Find best parameters
+[minMSE, minIdx] = min(grid_MSEs(:));
+[bestFeatIdx, bestRadIdx] = ind2sub(size(grid_MSEs), minIdx);
+bestFeatures = numOfFeatures(bestFeatIdx);
+bestRadius = clusterRadius(bestRadIdx);
+bestOA = grid_OAs(bestFeatIdx, bestRadIdx);
+bestRules = grid_numOfRules(bestFeatIdx, bestRadIdx);
 
-% Heatmap
-figure(4);
-imagesc(gridSearchParams(1,:,2), gridSearchParams(:,1,1), errors);
-colorbar;
-xlabel('Radius');
-ylabel('Number of Features');
-title('Grid Search: Error Heatmap');
-set(gca, 'YDir', 'normal');
+fprintf('Best combination found:\n');
+fprintf('  Features: %d\n', bestFeatures);
+fprintf('  Radius: %.1f\n', bestRadius);
+fprintf('  Average OA: %.4f (%.2f%%)\n', bestOA, bestOA*100);
+fprintf('  Average MSE: %.4f\n', minMSE);
+fprintf('  Average Rules: %.0f\n', bestRules);
 
-errors
+% Save all results and data splits for later use
+save('grid_search_results.mat', ...
+    'grid_OAs', 'grid_MSEs', 'grid_numOfRules', ...
+    'numOfFeatures', 'clusterRadius', ...
+    'bestFeatures', 'bestRadius', 'bestOA', 'bestRules', ...
+    'importanceIndexes', 'importanceWeights', ...
+    'trainData', 'validationData', 'testData', ...
+    'trainTarget', 'validationTarget', 'testTarget', ...
+    'numClasses', 'elapsed_time');
+
+fprintf('\n=================================================================\n');
+fprintf('Grid search completed successfully!\n');
+fprintf('Results saved to: grid_search_results.mat\n');
+fprintf('\nNext steps:\n');
+fprintf('  1. Run analyze_grid_search.m to visualize results\n');
+fprintf('  2. Run train_final_model.m to train with best parameters\n');
+fprintf('  3. Run evaluate_final_model.m to see final model performance\n');
+fprintf('=================================================================\n');
+
 disp("End of script");
