@@ -1,44 +1,27 @@
-%% EVALUATE FINAL MODEL
-% This script loads the trained model and evaluates it on the test set
-% Generates all required visualizations and performance metrics
-
+%% Evaluate Final Model
 clc; clear;
 
-fprintf('=================================================================\n');
-fprintf('         FINAL MODEL EVALUATION AND VISUALIZATION\n');
-fprintf('=================================================================\n\n');
-
-%% Load Trained Model
-if ~exist('trained_final_model.mat', 'file')
-    error('Trained model not found! Run train_final_model.m first.');
-end
-
 fprintf('Loading trained model...\n');
+if ~exist('trained_final_model.mat', 'file')
+    error('Run train_final_model.m first');
+end
 load('trained_final_model.mat');
 
-fprintf('\n=== MODEL INFO ===\n');
-fprintf('  Number of features: %d\n', bestFeatures);
-fprintf('  Cluster radius: %.1f\n', bestRadius);
-fprintf('  Number of rules: %d\n', num_rules);
-fprintf('  Training time: %.1f seconds\n', trainingTime);
+fprintf('\n=== Model Info ===\n');
+fprintf('Features: %d\n', bestFeatures);
+fprintf('Radius: %.1f\n', bestRadius);
+fprintf('Rules: %d\n', num_rules);
+fprintf('Training time: %.1f sec\n', trainingTime);
 
-%% Evaluate on Test Set
-fprintf('\n=== TEST SET EVALUATION ===\n');
-
-% Clamp inputs to [0,1] to avoid warnings
+% Evaluate on test set
+fprintf('\n=== Test Set Evaluation ===\n');
 testInput = max(0, min(1, testDataFS(:, 1:end-1)));
-
-% Predict
 Y_pred = evalfis(valFIS, testInput);
-
-% Convert to class labels (round to nearest integer class)
 Y_pred = round(Y_pred);
 Y_pred = max(1, min(numClasses, Y_pred));
 Y_true = testTarget;
 
-%% Calculate Performance Metrics
-
-% Confusion Matrix
+% Metrics
 N = length(Y_true);
 confusionMat = zeros(numClasses);
 
@@ -46,10 +29,8 @@ for i = 1:N
     confusionMat(Y_true(i), Y_pred(i)) = confusionMat(Y_true(i), Y_pred(i)) + 1;
 end
 
-% Overall Accuracy (OA)
 OA = trace(confusionMat) / N;
 
-% Producer's Accuracy (PA) and User's Accuracy (UA)
 PA = zeros(numClasses, 1);
 UA = zeros(numClasses, 1);
 
@@ -71,14 +52,10 @@ else
     kappa = 0;
 end
 
-% Mean Squared Error
 MSE = mse(Y_pred, Y_true);
 
-%% Display Results
-fprintf('\n=================================================================\n');
-fprintf('                    PERFORMANCE METRICS\n');
-fprintf('=================================================================\n\n');
-
+% Display results
+fprintf('\n=== Results ===\n');
 fprintf('CONFUSION MATRIX:\n');
 fprintf('%-12s', 'True\\Pred');
 for i = 1:numClasses
@@ -100,41 +77,39 @@ for j = 1:numClasses
 end
 fprintf('%10.0f\n', N);
 
-fprintf('\nOVERALL METRICS:\n');
-fprintf('  Overall Accuracy (OA):  %.4f (%.2f%%)\n', OA, OA * 100);
-fprintf('  Kappa Statistic:        %.4f\n', kappa);
-fprintf('  Mean Squared Error:     %.4f\n', MSE);
+fprintf('\nOverall Metrics:\n');
+fprintf('  OA: %.4f (%.2f%%)\n', OA, OA * 100);
+fprintf('  Kappa: %.4f\n', kappa);
+fprintf('  MSE: %.4f\n', MSE);
 
-fprintf('\nPER-CLASS METRICS:\n');
-fprintf('%-10s %15s %15s\n', 'Class', 'PA (Recall)', 'UA (Precision)');
+fprintf('\nPer-Class:\n');
+fprintf('%-10s %15s %15s\n', 'Class', 'PA', 'UA');
 for i = 1:numClasses
     fprintf('Class %-4d  %8.4f (%5.1f%%)  %8.4f (%5.1f%%)\n', ...
         i, PA(i), PA(i)*100, UA(i), UA(i)*100);
 end
 
-%% Visualizations
+%% Plots
 
-% Figure 1: Confusion Matrix Heatmap
+% Figure 1: Confusion Matrix
 figure(1);
 clf;
 imagesc(confusionMat);
 colormap('parula');
 colorbar;
-xlabel('Predicted Class', 'FontSize', 12);
-ylabel('True Class', 'FontSize', 12);
-title(sprintf('Confusion Matrix (OA = %.2f%%)', OA*100), 'FontSize', 14);
+xlabel('Predicted Class');
+ylabel('True Class');
+title(sprintf('Confusion Matrix (OA = %.2f%%)', OA*100));
 set(gca, 'XTick', 1:numClasses, 'YTick', 1:numClasses);
 
-% Add text annotations
 for i = 1:numClasses
     for j = 1:numClasses
         text(j, i, sprintf('%d', round(confusionMat(i, j))), ...
-            'HorizontalAlignment', 'center', 'Color', 'white', ...
-            'FontWeight', 'bold', 'FontSize', 10);
+            'HorizontalAlignment', 'center', 'Color', 'white', 'FontWeight', 'bold');
     end
 end
 
-% Figure 2: Training Learning Curves
+% Figure 2: Learning Curves
 figure(2);
 clf;
 epochs = 1:length(trainError);
@@ -259,7 +234,7 @@ fprintf('\n=================================================================\n')
 fprintf('                    EVALUATION SUMMARY\n');
 fprintf('=================================================================\n');
 fprintf('Model Parameters:\n');
-fprintf('  Features: %d (selected from %d)\n', bestFeatures, size(testData, 2) - 1);
+fprintf('  Features: %d (selected from %d)\n', bestFeatures, size(testDataFS, 2) - 1);
 fprintf('  Radius: %.1f\n', bestRadius);
 fprintf('  Rules: %d\n', num_rules);
 fprintf('\nPerformance:\n');

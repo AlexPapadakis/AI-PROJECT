@@ -296,7 +296,7 @@
                 </div>
                 
                 <h3>Μεθοδολογία και Παράμετροι</h3>
-                <p>Εκπαιδεύτηκαν τέσσερα TSK μοντέλα με διαφορετικές παραμέτρους για τη μελέτη της επίδρασης του αριθμού κανόνων στην απόδοση:</p>
+                <p>Για τη μελέτη της επίδρασης του αριθμού κανόνων στην απόδοση, εκπαιδεύτηκαν τέσσερα TSK μοντέλα με διαφορετικό radius για το Subtractive Clustering:</p>
                 
                 <div class="parameter-info">
                     <h5>Παράμετροι Μοντέλων</h5>
@@ -423,8 +423,8 @@
                 </div>
                 
                 <div class="warning-box">
-                    <h5>⚠️ Κλινική Σημασία</h5>
-                    <p>Το μοντέλο παρουσιάζει 14 False Negatives (ασθενείς που πέθαναν αλλά προβλέφθηκαν ως επιζώντες), που είναι επικίνδυνο για ιατρικές εφαρμογές.</p>
+                    <h5>Παρατήρηση </h5>
+                    <p>Το μοντέλο έχει 14 False Negatives (ασθενείς που πέθαναν αλλά προβλέφθηκαν ως επιζώντες). Σε κλινικό περιβάλλον, αυτό το είδος λάθους είναι σοβαρότερο από το αντίστροφο, καθώς οδηγεί σε υποτίμηση του κινδύνου.</p>
                 </div>
                 
                 <h3>Διαγράμματα Μάθησης και Membership Functions</h3>
@@ -453,19 +453,17 @@
                 
                 <div class="conclusion-box">
                     <h4>Επίδραση Αριθμού Κανόνων</h4>
-                    <p><strong>Λιγότεροι κανόνες είναι καλύτεροι:</strong> Τα μοντέλα με μεγάλο radius (0.8) που παράγουν λιγότερους κανόνες επιτυγχάνουν καλύτερη απόδοση κατά ~16.4% σε σχέση με τα μοντέλα με μικρό radius (0.2).</p>
-                    <p><strong>Λόγος:</strong> Λιγότεροι κανόνες → Καλύτερη γενίκευση → Αποφυγή υπερεκπαίδευσης</p>
+                    <p>Τα μοντέλα με μεγάλο radius (0.8) που δημιουργούν λιγότερους κανόνες έχουν καλύτερη απόδοση σε σχέση με τα μοντέλα με μικρό radius (0.2). Αυτό συμβαίνει επειδή λιγότεροι κανόνες βοηθούν το μοντέλο να γενικεύσει καλύτερα και να αποφύγει την υπερεκπαίδευση.</p>
                 </div>
                 
                 <div class="conclusion-box">
                     <h4>Class-Dependent vs Class-Independent Clustering</h4>
-                    <p><strong>Class-Dependent είναι καλύτερο:</strong> Η ξεχωριστή ομαδοποίηση ανά κλάση επιτυγχάνει καλύτερη απόδοση κατά ~8.2%.</p>
-                    <p><strong>Λόγος:</strong> Καθαρότερα clusters ανά κλάση → Πιο ερμηνεύσιμοι κανόνες → Καλύτερη αναγνώριση patterns</p>
+                    <p>Η ξεχωριστή ομαδοποίηση ανά κλάση (Class-Dependent) δίνει καλύτερα αποτελέσματα. Όταν κάνουμε clustering ξεχωριστά για κάθε κλάση, τα clusters είναι πιο καθαρά και οι κανόνες πιο ερμηνεύσιμοι, με αποτέλεσμα το μοντέλο να αναγνωρίζει καλύτερα τα patterns.</p>
                 </div>
                 
                 <div class="conclusion-box">
                     <h4>Επικάλυψη Ασαφών Συνόλων</h4>
-                    <p>Η επικάλυψη των ασαφών συνόλων στις εισόδους επιτρέπει την ταυτόχρονη ενεργοποίηση πολλαπλών κανόνων, βελτιώνοντας την ομαλότητα του μοντέλου και τη γενίκευση.</p>
+                    <p>Τα ασαφή σύνολα στις εισόδους επικαλύπτονται, πράγμα που επιτρέπει σε πολλούς κανόνες να ενεργοποιούνται ταυτόχρονα. Αυτό κάνει το μοντέλο πιο ομαλό και βοηθάει στη γενίκευση.</p>
                 </div>
                 
                 <h3>Προτάσεις Βελτίωσης</h3>
@@ -478,123 +476,251 @@
             </div>
             
             <div class="section">
-                <h2>2ο Μέρος - Epileptic Seizure Recognition Dataset</h2>
+                <h2>2ο Μέρος - TSK Classification σε High-Dimensional Dataset</h2>
                 
                 <div class="dataset-info">
                     <h5>Πληροφορίες Dataset</h5>
                     <ul>
                         <li><strong>Πηγή:</strong> UCI Repository - Epileptic Seizure Recognition</li>
-                        <li><strong>Δείγματα:</strong> 11,500 instances</li>
-                        <li><strong>Χαρακτηριστικά:</strong> 179 features</li>
-                        <li><strong>Κλάσεις:</strong> 5 (Epileptic seizure activity, Tumor area, Healthy area, etc.)</li>
-                        <li><strong>Διαχωρισμός:</strong> 60% training, 20% validation, 20% test</li>
+                        <li><strong>Δείγματα:</strong> 11,500 samples</li>
+                        <li><strong>Χαρακτηριστικά:</strong> 178 features (+ 1 target class)</li>
+                        <li><strong>Κλάσεις:</strong> 5 (1=Seizure, 2=Tumor, 3=Healthy, 4=Eyes closed, 5=Eyes open)</li>
+                        <li><strong>Διαχωρισμός:</strong> 60% training (6,900), 20% validation (2,300), 20% test (2,300)</li>
+                        <li><strong>Πρόκληση:</strong> Rule explosion - με grid partitioning για 178 features θα χρειάζονταν 2¹⁷⁸ κανόνες!</li>
                     </ul>
                 </div>
                 
-                <h3>Μεθοδολογία Grid Search</h3>
-                <p>Λόγω της υψηλής διαστασιμότητας, εφαρμόστηκε συστηματική προσέγγιση με:</p>
+                <h3>Μεθοδολογία: Feature Selection + Grid Search + Cross-Validation</h3>
+                
+                <p>Για την αντιμετώπιση του προβλήματος της υψηλής διαστασιμότητας, υλοποιήθηκε μια ολοκληρωμένη pipeline που συνδυάζει feature selection με βελτιστοποίηση παραμέτρων:</p>
                 
                 <div class="parameter-info">
-                    <h5>Παράμετροι Grid Search</h5>
+                    <h5>Αρχιτεκτονική Grid Search</h5>
                     <ul>
-                        <li><strong>Feature Selection:</strong> Relief algorithm με 5 nearest neighbors</li>
-                        <li><strong>Αριθμός Χαρακτηριστικών:</strong> [15, 25, 35]</li>
-                        <li><strong>Radius Subtractive Clustering:</strong> [0.3, 0.5, 0.7]</li>
-                        <li><strong>Cross-Validation:</strong> 5-fold stratified</li>
-                        <li><strong>Συνολικοί Συνδυασμοί:</strong> 3 × 3 = 9</li>
+                        <li><strong>Feature Selection:</strong> ReliefF algorithm (k=10 nearest neighbors)</li>
+                        <li><strong>Αριθμός Χαρακτηριστικών:</strong> [4, 8, 12, 16]</li>
+                        <li><strong>Radius Subtractive Clustering:</strong> [0.3, 0.4, 0.5, 0.6, 0.9] </li>
+                        <li><strong>Cross-Validation:</strong> 5-fold stratified </li>
+                        <li><strong>Συνολικοί Συνδυασμοί:</strong> 4 × 5 = 20 parameter configurations</li>
+                        <li><strong>ANFIS Training:</strong> 100 epochs</li>
+                        <li><strong>Clustering Strategy:</strong> Class-dependent subtractive clustering</li>
                     </ul>
                 </div>
                 
-                <h3>Αποτελέσματα Grid Search</h3>
+                <p>Η διαδικασία 5-fold CV χωρίζει το training set σε 5 folds, όπου κάθε fold χρησιμοποιείται μια φορά για validation ενώ τα υπόλοιπα 4 για training. Αυτό δίνει πιο αξιόπιστη εκτίμηση της απόδοσης από ένα μόνο train/val split.</p>
+                
+                <h3>Αποτελέσματα Grid Search - Διερεύνηση 20 Συνδυασμών</h3>
+                
+                <div class="image-container">
+                    <img src="images/1.png" alt="MSE vs Number of Rules">
+                    <div class="image-caption">ΕΙΚΟΝΑ 1: Validation MSE συναρτήσει αριθμού κανόνων</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/2.png" alt="MSE vs Number of Features">
+                    <div class="image-caption">ΕΙΚΟΝΑ 2: Validation MSE συναρτήσει αριθμού features</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/3.png" alt="MSE vs Radius">
+                    <div class="image-caption">ΕΙΚΟΝΑ 3: Validation MSE συναρτήσει radius</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/4.png" alt="3D Surface Plot">
+                    <div class="image-caption">ΕΙΚΟΝΑ 4: 3D επιφάνεια MSE(features, radius)</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/5.png" alt="MSE Heatmap">
+                    <div class="image-caption">ΕΙΚΟΝΑ 5: Heatmap του MSE</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/6.png" alt="OA Heatmap">
+                    <div class="image-caption">ΕΙΚΟΝΑ 6: Heatmap του Overall Accuracy</div>
+                </div>
+                
+                <div class="results-box">
+                    <h4>Παρατηρήσεις από Grid Search:</h4>
+                    <ul>
+                        <li><strong>Επίδραση Features:</strong> Από 4 σε 16 features παρατηρείται βελτίωση της απόδοσης. Με λίγα features το μοντέλο δεν μπορεί να συλλάβει την πολυπλοκότητα του προβλήματος.</li>
+                        <li><strong>Επίδραση Radius:</strong> Μικρό radius (0.3-0.4) δημιουργεί πολλούς κανόνες. Μεγάλο radius (0.9) δίνει πολύ λίγους κανόνες. Το radius=0.5 βρίσκει καλή ισορροπία.</li>
+                        <li><strong>Αριθμός Κανόνων:</strong> Από 9 έως 29 κανόνες ανάλογα με τον συνδυασμό παραμέτρων.</li>
+                        <li><strong>Βέλτιστη Περιοχή:</strong> Η περιοχή 12-16 features με radius 0.5-0.6 δίνει τα καλύτερα αποτελέσματα.</li>
+                    </ul>
+                </div>
                 
                 <div class="results-box">
                     <h4>Βέλτιστες Παράμετροι</h4>
-                    <p>Μετά από εκτενή αναζήτηση, οι βέλτιστες παράμετροι είναι:</p>
+                    <p>Από τη διαδικασία grid search με 20 συνδυασμούς και 5-fold CV, οι βέλτιστες παράμετροι είναι:</p>
                     <ul>
-                        <li><strong>Αριθμός Χαρακτηριστικών:</strong> 25</li>
-                        <li><strong>Radius:</strong> 0.5</li>
-                        <li><strong>Cross-Validation Error:</strong> 0.125 (87.5% accuracy)</li>
+                        <li><strong>Αριθμός Χαρακτηριστικών:</strong> 16 (επιλεγμένα με ReliefF από τα 178 αρχικά)</li>
+                        <li><strong>Radius:</strong> 0.5 (balanced complexity)</li>
+                        <li><strong>Cross-Validation MSE:</strong> 0.597 → <strong>Overall Accuracy: 40.33%</strong></li>
+                        <li><strong>Αριθμός Κανόνων (στο CV):</strong> ~11-13 κανόνες ανά fold</li>
                     </ul>
                 </div>
                 
-                <h3>Τελικό Μοντέλο</h3>
+                <h3>Τελικό Μοντέλο - Training με Βέλτιστες Παραμέτρους</h3>
                 
-                <h3>Απόδοση Τελικού Μοντέλου</h3>
+                <p>Το τελικό μοντέλο εκπαιδεύτηκε με τις βέλτιστες παραμέτρους (16 features, radius=0.5) στο πλήρες training set (6,900 samples) για 200 epochs με validation-based early stopping.</p>
+                
+                <div class="image-container">
+                    <img src="images/a.png" alt="Confusion Matrix">
+                    <div class="image-caption">ΕΙΚΟΝΑ 7: Confusion Matrix στο test set</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/b.png" alt="Learning Curves">
+                    <div class="image-caption">ΕΙΚΟΝΑ 8: Καμπύλες μάθησης (Training & Validation RMSE)</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/c.png" alt="Predictions vs True">
+                    <div class="image-caption">ΕΙΚΟΝΑ 9: Προβλέψεις vs πραγματικές τιμές (πρώτα 500 samples)</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/d.png" alt="Per-Class Performance">
+                    <div class="image-caption">ΕΙΚΟΝΑ 10: Producer's Accuracy και User's Accuracy ανά κλάση</div>
+                </div>
+                
+                <div class="image-container">
+                    <img src="images/e.png" alt="Membership Functions">
+                    <div class="image-caption">ΕΙΚΟΝΑ 11: Membership functions των πρώτων 3 features μετά το training</div>
+                </div>
+                
+                <h3>Απόδοση Τελικού Μοντέλου στο Test Set</h3>
                 
                 <div class="metrics-grid">
                     <div class="metric-card">
-                        <div class="metric-value">89.2%</div>
-                        <div class="metric-label">Overall Accuracy</div>
+                        <div class="metric-value">38.22%</div>
+                        <div class="metric-label">Overall Accuracy (OA)</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value">25</div>
-                        <div class="metric-label">Selected Features (από 179)</div>
+                        <div class="metric-value">16</div>
+                        <div class="metric-label">Selected Features (από 178)</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value">45</div>
+                        <div class="metric-value">11</div>
                         <div class="metric-label">IF-THEN Rules</div>
                     </div>
                     <div class="metric-card">
-                        <div class="metric-value">0.862</div>
+                        <div class="metric-value">0.2278</div>
                         <div class="metric-label">Kappa Statistic</div>
                     </div>
                 </div>
                 
-                <div class="conclusion-box">
-                    <h4>Σύγκριση με Grid Partitioning</h4>
-                    <p><strong>Subtractive Clustering vs Grid Partitioning:</strong></p>
-                    <ul>
-                        <li><strong>Τρέχον μοντέλο:</strong> 45 κανόνες με 25 features</li>
-                        <li><strong>Grid με 2 MFs/είσοδο:</strong> 2²⁵ = 33,554,432 κανόνες</li>
-                        <li><strong>Grid με 3 MFs/είσοδο:</strong> 3²⁵ = 847,288,609,443 κανόνες</li>
-                    </ul>
-                    <p><strong>Συμπέρασμα:</strong> Το Subtractive Clustering είναι απολύτως απαραίτητο για υψηλή διαστασιμότητα!</p>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Κλάση</th>
+                            <th>Περιγραφή</th>
+                            <th>Producer's Accuracy</th>
+                            <th>User's Accuracy</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Seizure Activity</td>
+                            <td>96.09%</td>
+                            <td>43.17%</td>
+                        </tr>
+                        <tr class="worst-model">
+                            <td>2</td>
+                            <td>Tumor Area</td>
+                            <td>4.57%</td>
+                            <td>21.28%</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Healthy Area</td>
+                            <td>42.39%</td>
+                            <td>38.56%</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Eyes Closed</td>
+                            <td>46.74%</td>
+                            <td>38.24%</td>
+                        </tr>
+                        <tr class="worst-model">
+                            <td>5</td>
+                            <td>Eyes Open</td>
+                            <td>7.39%</td>
+                            <td>17.65%</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="results-box">
+                    <h4>Ανάλυση Αποτελεσμάτων:</h4>
+                    <p><strong>Overall Performance:</strong> Το μοντέλο πέτυχε 38.22% ακρίβεια στο test set, κοντά στην CV απόδοση (40.33%). Η απόλυτη ακρίβεια είναι χαμηλή, κάτι που οφείλεται στη φύση του προβλήματος και την ανισορροπία των κλάσεων.</p>
+                    
+                    <p><strong>Class Imbalance:</strong> Οι κλάσεις 2 (Tumor) και 5 (Eyes Open) έχουν πολύ χαμηλή Producer's Accuracy (4.57% και 7.39% αντίστοιχα). Το μοντέλο αποτυγχάνει να ανιχνεύσει τα περισσότερα samples αυτών των κλάσεων, πιθανώς λόγω λιγότερων training samples ή επικάλυψης με άλλες κλάσεις.</p>
+                    
+                    <p><strong>Class 1 Bias:</strong> Η κλάση 1 (Seizure) έχει πολύ υψηλή PA (96.09%) αλλά χαμηλή UA (43.17%). Το μοντέλο ταξινομεί πολλά samples ως "Seizure" ακόμα και όταν δεν είναι.</p>
+                    
+                    <p><strong>Kappa = 0.2278:</strong>  Το μοντέλο έχει μέτρια απόδοση.</p>
                 </div>
                 
-                <h3>Ανάλυση Χαρακτηριστικών</h3>
-                <p>Τα χαρακτηριστικά που επιλέχθηκαν από τον Relief algorithm αντιπροσωπεύουν:</p>
-                <ul>
-                    <li>Συχνοτικές συνιστώσες με υψηλή διακριτική ικανότητα</li>
-                    <li>Temporal patterns σχετικά με epileptic activity</li>
-                    <li>Statistical features που διαχωρίζουν τις κλάσεις</li>
-                </ul>
+                <h3>Rule Explosion Analysis - Σύγκριση με Grid Partitioning</h3>
+                
+                <p>Ένα από τα κεντρικά ερωτήματα της εργασίας είναι πόσο αποτελεσματικό είναι το subtractive clustering στη μείωση των κανόνων σε σχέση με το κλασικό grid partitioning.</p>
+                
+                <div class="conclusion-box">
+                    <h4>Θεωρητικός Αριθμός Κανόνων με Grid Partitioning</h4>
+                    <p>Αν είχαμε χρησιμοποιήσει grid partitioning αντί για subtractive clustering για τα <strong>16 επιλεγμένα features</strong>:</p>
+                    <ul>
+                        <li><strong>Grid με 2 MFs ανά είσοδο:</strong> 2¹⁶ = <span style="font-weight: bold;">65,536 κανόνες</span></li>
+                        <li><strong>Grid με 3 MFs ανά είσοδο:</strong> 3¹⁶ = <span style="font-weight: bold;">43,046,721 κανόνες</span></li>
+                    </ul>
+                    
+                    <p><strong>Με το Subtractive Clustering:</strong> <span style="color: #000; font-weight: bold; font-size: 1.2em;">11 κανόνες</span></p>
+                    
+                    <p><strong>Reduction Factors:</strong></p>
+                    <ul>
+                        <li>Vs 2 MFs/input: <strong>5,958× μείωση</strong></li>
+                        <li>Vs 3 MFs/input: <strong>3,913,338× μείωση</strong></li>
+                    </ul>
+                    
+                    <p>Το subtractive clustering καθιστά πρακτικά εφικτή τη μοντελοποίηση προβλημάτων με μεσαίο αριθμό χαρακτηριστικών. Χωρίς αυτό, ένα TSK σύστημα με 16 inputs θα ήταν υπολογιστικά απαγορευτικό.</p>
+                </div>
+                
+                <h3>Feature Selection Analysis</h3>
+                
+                <p>Το ReliefF algorithm επέλεξε 16 από τα 178 διαθέσιμα features:</p>
+                
+                <div class="code-block">Selected Features: [12, 173, 143, 31, 174, 149, 109, 130, 127, 139, 177, 42, 137, 146, 61, 150]</div>
+                
+                <h3>Membership Functions</h3>
+                
+                <p>Από την Εικόνα 11 παρατηρούμε ότι τα membership functions μετά το training έχουν σημαντική επικάλυψη. Αυτό επιτρέπει ομαλές μεταβάσεις μεταξύ των κανόνων και κάθε input μπορεί να ενεργοποιεί πολλαπλούς κανόνες.</p>
                 
                 <div class="conclusion-box">
                     <h4>Συμπεράσματα 2ου Μέρους</h4>
-                    <p>Η συστηματική προσέγγιση με Grid Search επέτρεψε την εύρεση βέλτιστων παραμέτρων που επιτυγχάνουν:</p>
+                    
+                    <p><strong>Επιτυχίες:</strong></p>
                     <ul>
-                        <li><strong>Υψηλή ακρίβεια:</strong> 89.2% στο test set</li>
-                        <li><strong>Μείωση διαστασιμότητας:</strong> Από 179 σε 25 features (86% μείωση)</li>
-                        <li><strong>Αποδοτικότητα:</strong> 45 κανόνες αντί για εκατομμύρια</li>
-                        <li><strong>Ερμηνευσιμότητα:</strong> Class-dependent clustering για καθαρότερα patterns</li>
+                        <li>Grid search βελτιστοποίησε δύο κρίσιμες παραμέτρους</li>
+                        <li>Μείωση από 178 σε 16 features (91%)</li>
+                        <li>Subtractive clustering μείωσε τους κανόνες από 65,536 σε 11 (5,958×)</li>
+                        <li>5-fold CV έδωσε αξιόπιστη εκτίμηση (CV: 40.33%, Test: 38.22%)</li>
+                        <li>Class-dependent clustering βοήθησε στη διατήρηση των patterns</li>
                     </ul>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h2>Γενικά Συμπεράσματα</h2>
-                
-                <div class="conclusion-box">
-                    <h4>Βασικά Ευρήματα</h4>
-                    <ol>
-                        <li><strong>Αριθμός Κανόνων:</strong> Λιγότεροι κανόνες συνήθως προσφέρουν καλύτερη γενίκευση</li>
-                        <li><strong>Class-Dependent Clustering:</strong> Ξεχωριστή ομαδοποίηση ανά κλάση βελτιώνει την απόδοση</li>
-                        <li><strong>Feature Selection:</strong> Κρίσιμη για υψηλή διαστασιμότητα</li>
-                        <li><strong>Grid Search:</strong> Απαραίτητη για βελτιστοποίηση παραμέτρων</li>
-                        <li><strong>Cross-Validation:</strong> Εξασφαλίζει αξιόπιστη αξιολόγηση</li>
-                    </ol>
-                </div>
-                
-                <div class="conclusion-box">
-                    <h4>Πρακτικές Συστάσεις</h4>
+                    
+                    <p><strong>Περιορισμοί:</strong></p>
                     <ul>
-                        <li>Χρήση Subtractive Clustering για μείωση πολυπλοκότητας</li>
-                        <li>Εφαρμογή feature selection για υψηλή διαστασιμότητα</li>
-                        <li>Class-dependent clustering για καλύτερη ερμηνευσιμότητα</li>
-                        <li>Προσεκτική επιλογή μετρικών αξιολόγησης (ειδικά για ιατρικές εφαρμογές)</li>
-                        <li>Συστηματική βελτιστοποίηση παραμέτρων με grid search</li>
+                        <li>Η ακρίβεια (38.22%) είναι χαμηλή για πολύπλοκο πρόβλημα 5 κλάσεων</li>
+                        <li>Class imbalance (κλάσεις 2 και 5 με PA < 8%)</li>
+                        <li>Δυσκολία διαχωρισμού των κλάσεων 3, 4, 5</li>
                     </ul>
+                    
+                    <p><strong>Γενικό Συμπέρασμα:</strong> Η μέθοδος ReliefF + Subtractive Clustering + ANFIS με grid search αντιμετώπισε επιτυχώς το rule explosion. Το μοντέλο πετυχαίνει ισορροπία μεταξύ πολυπλοκότητας και ερμηνευσιμότητας.</p>
                 </div>
+            </div>     
             </div>
         </div>
     </div>
